@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.openclaw.pikatakehome</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>PikaTakeHome</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>UILaunchScreen</key>
+    <dict/>
+    <key>UIAppFonts</key>
+    <array>
+        <string>fonts/BPdotsVertical.otf</string>
+        <string>fonts/BPdotsVerticalBold.otf</string>
+        <string>fonts/SpaceMono-Bold.ttf</string>
+        <string>fonts/SpaceMono-Regular.ttf</string>
+        <string>fonts/Telka-Extended-Black.otf</string>
+        <string>fonts/Telka-Extended-Bold.otf</string>
+        <string>fonts/Telka-Extended-Light.otf</string>
+        <string>fonts/Telka-Extended-Medium.otf</string>
+        <string>fonts/Telka-Extended-Regular.otf</string>
+        <string>fonts/Telka-Extended-Super.otf</string>
+        <string>fonts/Telka-Medium.otf</string>
+        <string>fonts/Telka-Regular.otf</string>
+    </array>
+</dict>
+</plist>

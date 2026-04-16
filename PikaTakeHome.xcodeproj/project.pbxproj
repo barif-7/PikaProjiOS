@@ -1,0 +1,380 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A1A1A1A1A1A1A1A1A1A1A01 /* PikaTakeHomeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A11 /* PikaTakeHomeApp.swift */; };
+		1A1A1A1A1A1A1A1A1A1A1A02 /* PrototypeFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A12 /* PrototypeFlow.swift */; };
+		1A1A1A1A1A1A1A1A1A1A1A03 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */; };
+		1A1A1A1A1A1A1A1A1A1A1A04 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A14 /* fonts */; };
+		1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */; };
+		1D94B0E12F908CF900373810 /* PrototypeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E02F908CF900373810 /* PrototypeCoordinator.swift */; };
+		1D94B0E32F908CF900373810 /* PrototypeWelcomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */; };
+		1D94B0E52F908CF900373810 /* PrototypeCameraViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E42F908CF900373810 /* PrototypeCameraViewModel.swift */; };
+		1D94B0E72F908CFA00373810 /* PrototypeVoiceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E62F908CFA00373810 /* PrototypeVoiceViewModel.swift */; };
+		1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E82F908CFA00373810 /* PrototypeSuccessViewModel.swift */; };
+		1D94B0EB2F908D1F00373810 /* PrototypeCoordinatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0EA2F908D1F00373810 /* PrototypeCoordinatorView.swift */; };
+		1D94B0ED2F908D1F00373810 /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0EC2F908D1F00373810 /* WelcomeScreen.swift */; };
+		1D94B0EF2F908D1F00373810 /* CameraScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0EE2F908D1F00373810 /* CameraScreen.swift */; };
+		1D94B0F12F908D2000373810 /* VoiceScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F02F908D2000373810 /* VoiceScreen.swift */; };
+		1D94B0F32F908D2000373810 /* SuccessScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F22F908D2000373810 /* SuccessScreen.swift */; };
+		1D94B0F52F908D7300373810 /* PrototypeControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F42F908D7300373810 /* PrototypeControls.swift */; };
+		1D94B0F72F908D7400373810 /* PrototypeArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1A1A1A1A1A1A1A1A1A1A1A10 /* PikaTakeHome.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PikaTakeHome.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A1A1A1A1A1A1A1A1A1A1A11 /* PikaTakeHomeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaTakeHomeApp.swift; sourceTree = "<group>"; };
+		1A1A1A1A1A1A1A1A1A1A1A12 /* PrototypeFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeFlow.swift; sourceTree = "<group>"; };
+		1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		1A1A1A1A1A1A1A1A1A1A1A14 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = SOURCE_ROOT; };
+		1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeFlowModels.swift; sourceTree = "<group>"; };
+		1D94B0E02F908CF900373810 /* PrototypeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeCoordinator.swift; sourceTree = "<group>"; };
+		1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeWelcomeViewModel.swift; sourceTree = "<group>"; };
+		1D94B0E42F908CF900373810 /* PrototypeCameraViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeCameraViewModel.swift; sourceTree = "<group>"; };
+		1D94B0E62F908CFA00373810 /* PrototypeVoiceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeVoiceViewModel.swift; sourceTree = "<group>"; };
+		1D94B0E82F908CFA00373810 /* PrototypeSuccessViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSuccessViewModel.swift; sourceTree = "<group>"; };
+		1D94B0EA2F908D1F00373810 /* PrototypeCoordinatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeCoordinatorView.swift; sourceTree = "<group>"; };
+		1D94B0EC2F908D1F00373810 /* WelcomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeScreen.swift; sourceTree = "<group>"; };
+		1D94B0EE2F908D1F00373810 /* CameraScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraScreen.swift; sourceTree = "<group>"; };
+		1D94B0F02F908D2000373810 /* VoiceScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceScreen.swift; sourceTree = "<group>"; };
+		1D94B0F22F908D2000373810 /* SuccessScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuccessScreen.swift; sourceTree = "<group>"; };
+		1D94B0F42F908D7300373810 /* PrototypeControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeControls.swift; sourceTree = "<group>"; };
+		1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeArtwork.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1A1A1A1A1A1A1A1A1A1A1A20 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1A1A1A1A1A1A1A1A1A1A1A16 /* PikaTakeHome */ = {
+			isa = PBXGroup;
+			children = (
+				1A1A1A1A1A1A1A1A1A1A1A11 /* PikaTakeHomeApp.swift */,
+				1A1A1A1A1A1A1A1A1A1A1A12 /* PrototypeFlow.swift */,
+				1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */,
+				1D94B0D92F908B6D00373810 /* Flow */,
+				1D94B0DA2F908B6D00373810 /* Models */,
+				1D94B0DB2F908B6D00373810 /* ViewModels */,
+				1D94B0DC2F908B6E00373810 /* Views */,
+			);
+			path = PikaTakeHome;
+			sourceTree = SOURCE_ROOT;
+		};
+		1A1A1A1A1A1A1A1A1A1A1A17 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A1A1A1A1A1A1A1A1A1A1A10 /* PikaTakeHome.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1A1A1A1A1A1A1A1A1A1A1A30 = {
+			isa = PBXGroup;
+			children = (
+				1A1A1A1A1A1A1A1A1A1A1A16 /* PikaTakeHome */,
+				1A1A1A1A1A1A1A1A1A1A1A14 /* fonts */,
+				1A1A1A1A1A1A1A1A1A1A1A17 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1D94B0D92F908B6D00373810 /* Flow */ = {
+			isa = PBXGroup;
+			children = (
+				1D94B0E02F908CF900373810 /* PrototypeCoordinator.swift */,
+			);
+			path = Flow;
+			sourceTree = "<group>";
+		};
+		1D94B0DA2F908B6D00373810 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		1D94B0DB2F908B6D00373810 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */,
+				1D94B0E42F908CF900373810 /* PrototypeCameraViewModel.swift */,
+				1D94B0E62F908CFA00373810 /* PrototypeVoiceViewModel.swift */,
+				1D94B0E82F908CFA00373810 /* PrototypeSuccessViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		1D94B0DC2F908B6E00373810 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				1D94B0DD2F908B6E00373810 /* Components */,
+				1D94B0EA2F908D1F00373810 /* PrototypeCoordinatorView.swift */,
+				1D94B0EC2F908D1F00373810 /* WelcomeScreen.swift */,
+				1D94B0EE2F908D1F00373810 /* CameraScreen.swift */,
+				1D94B0F02F908D2000373810 /* VoiceScreen.swift */,
+				1D94B0F22F908D2000373810 /* SuccessScreen.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		1D94B0DD2F908B6E00373810 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				1D94B0F42F908D7300373810 /* PrototypeControls.swift */,
+				1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1A1A1A1A1A1A1A1A1A1A1A40 /* PikaTakeHome */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A1A1A1A1A1A1A1A1A1A1A50 /* Build configuration list for PBXNativeTarget "PikaTakeHome" */;
+			buildPhases = (
+				1A1A1A1A1A1A1A1A1A1A1A21 /* Sources */,
+				1A1A1A1A1A1A1A1A1A1A1A20 /* Frameworks */,
+				1A1A1A1A1A1A1A1A1A1A1A22 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PikaTakeHome;
+			productName = PikaTakeHome;
+			productReference = 1A1A1A1A1A1A1A1A1A1A1A10 /* PikaTakeHome.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1A1A1A1A1A1A1A1A1A1A1A60 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					1A1A1A1A1A1A1A1A1A1A1A40 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 1A1A1A1A1A1A1A1A1A1A1A51 /* Build configuration list for PBXProject "PikaTakeHome" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1A1A1A1A1A1A1A1A1A1A1A30;
+			productRefGroup = 1A1A1A1A1A1A1A1A1A1A1A17 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1A1A1A1A1A1A1A1A1A1A1A40 /* PikaTakeHome */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A1A1A1A1A1A1A1A1A1A1A22 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A1A1A1A1A1A1A1A1A1A1A04 /* fonts in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1A1A1A1A1A1A1A1A1A1A1A21 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D94B0EB2F908D1F00373810 /* PrototypeCoordinatorView.swift in Sources */,
+				1D94B0F72F908D7400373810 /* PrototypeArtwork.swift in Sources */,
+				1D94B0E72F908CFA00373810 /* PrototypeVoiceViewModel.swift in Sources */,
+				1A1A1A1A1A1A1A1A1A1A1A01 /* PikaTakeHomeApp.swift in Sources */,
+				1A1A1A1A1A1A1A1A1A1A1A02 /* PrototypeFlow.swift in Sources */,
+				1D94B0E32F908CF900373810 /* PrototypeWelcomeViewModel.swift in Sources */,
+				1D94B0F12F908D2000373810 /* VoiceScreen.swift in Sources */,
+				1D94B0F52F908D7300373810 /* PrototypeControls.swift in Sources */,
+				1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */,
+				1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */,
+				1D94B0ED2F908D1F00373810 /* WelcomeScreen.swift in Sources */,
+				1D94B0F32F908D2000373810 /* SuccessScreen.swift in Sources */,
+				1A1A1A1A1A1A1A1A1A1A1A03 /* DesignSystem.swift in Sources */,
+				1D94B0E12F908CF900373810 /* PrototypeCoordinator.swift in Sources */,
+				1D94B0EF2F908D1F00373810 /* CameraScreen.swift in Sources */,
+				1D94B0E52F908CF900373810 /* PrototypeCameraViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1A1A1A1A1A1A1A1A1A1A1A70 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PikaTakeHome/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openclaw.pikatakehome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1A1A1A1A1A1A1A1A1A1A1A71 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PikaTakeHome/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openclaw.pikatakehome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1A1A1A1A1A1A1A1A1A1A1A72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openclaw.pikatakehome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1A1A1A1A1A1A1A1A1A1A1A73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.openclaw.pikatakehome;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A1A1A1A1A1A1A1A1A1A1A50 /* Build configuration list for PBXNativeTarget "PikaTakeHome" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A1A1A1A1A1A1A1A1A1A1A70 /* Debug */,
+				1A1A1A1A1A1A1A1A1A1A1A71 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A1A1A1A1A1A1A1A1A1A1A51 /* Build configuration list for PBXProject "PikaTakeHome" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A1A1A1A1A1A1A1A1A1A1A72 /* Debug */,
+				1A1A1A1A1A1A1A1A1A1A1A73 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1A1A1A1A1A1A1A1A1A1A1A60 /* Project object */;
+}
