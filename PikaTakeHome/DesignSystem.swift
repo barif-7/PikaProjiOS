@@ -66,6 +66,7 @@ enum AppSpacing {
 }
 
 enum AppRadius {
+    static let xs: CGFloat = 10
     static let sm: CGFloat = 12
     static let md: CGFloat = 18
     static let lg: CGFloat = 24
@@ -74,8 +75,10 @@ enum AppRadius {
 }
 
 enum AppControlSize {
+    static let topButton: CGFloat = 48
     static let inputHeight: CGFloat = 58
     static let primaryButtonHeight: CGFloat = 58
+    static let iconButton: CGFloat = 64
 }
 
 enum AppShadow {
@@ -87,15 +90,17 @@ enum AppShadow {
 
 enum AppColor {
     // Raw palette
-    static let parchment = Color(red: 0.976, green: 0.965, blue: 0.939)
-    static let parchment2 = Color(red: 0.988, green: 0.979, blue: 0.961)
-    static let ink = Color(red: 0.09, green: 0.09, blue: 0.1)
-    static let muted = Color(red: 0.53, green: 0.52, blue: 0.55)
-    static let line = Color(red: 0.86, green: 0.84, blue: 0.82)
+    static let parchment = Color(red: 0.972, green: 0.961, blue: 0.945)
+    static let parchment2 = Color(red: 0.991, green: 0.988, blue: 0.981)
+    static let pearl = Color(red: 0.953, green: 0.947, blue: 0.935)
+    static let ink = Color(red: 0.12, green: 0.12, blue: 0.14)
+    static let muted = Color(red: 0.51, green: 0.49, blue: 0.49)
+    static let line = Color(red: 0.82, green: 0.81, blue: 0.80)
     static let lavender = Color(red: 0.78, green: 0.72, blue: 0.96)
-    static let lavenderDeep = Color(red: 0.56, green: 0.43, blue: 0.97)
-    static let lavenderSoft = Color(red: 0.92, green: 0.90, blue: 1.0)
-    static let card = Color(red: 0.97, green: 0.95, blue: 0.92)
+    static let lavenderDeep = Color(red: 0.47, green: 0.42, blue: 0.84)
+    static let lavenderSoft = Color(red: 0.89, green: 0.84, blue: 0.98)
+    static let lavenderTint = Color(red: 0.95, green: 0.93, blue: 0.99)
+    static let card = Color(red: 0.98, green: 0.97, blue: 0.95)
 
     // Semantic roles
     static let screenBackground = parchment
@@ -103,6 +108,7 @@ enum AppColor {
     static let surfacePrimary = parchment2
     static let surfaceSecondary = card
     static let surfaceAccent = lavenderSoft
+    static let surfaceChrome = pearl
 
     static let textPrimary = ink
     static let textSecondary = muted
@@ -185,14 +191,19 @@ struct PikaSecondaryButtonStyle: ButtonStyle {
 
 struct PikaRoundedPrimaryButtonStyle: ButtonStyle {
     let isEnabled: Bool
+    let textColor: Color?
+    let backgroundColor: Color?
 
     func makeBody(configuration: Configuration) -> some View {
+        let resolvedTextColor = textColor ?? AppColor.textPrimary
+        let resolvedBackgroundColor = backgroundColor ?? AppColor.accentSecondary
+
         configuration.label
             .font(AppFont.telka(17, weight: .medium))
             .frame(maxWidth: .infinity)
-            .frame(height: AppControlSize.primaryButtonHeight)
-            .foregroundStyle(isEnabled ? AppColor.textPrimary : AppColor.textPrimary.opacity(0.35))
-            .background(isEnabled ? AppColor.accentSecondary : AppColor.accentMuted)
+            .frame(height: 56)
+            .foregroundStyle(isEnabled ? resolvedTextColor : resolvedTextColor.opacity(0.35))
+            .background(isEnabled ? resolvedBackgroundColor : AppColor.accentMuted)
             .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
             .scaleEffect(configuration.isPressed && isEnabled ? 0.99 : 1)
             .opacity(configuration.isPressed && isEnabled ? 0.95 : 1)
@@ -205,9 +216,9 @@ struct PikaRoundedSecondaryButtonStyle: ButtonStyle {
         configuration.label
             .font(AppFont.telka(17, weight: .medium))
             .frame(maxWidth: .infinity)
-            .frame(height: AppControlSize.primaryButtonHeight)
+            .frame(height: 48)
             .foregroundStyle(AppColor.textPrimary)
-            .background(Color.white.opacity(0.68))
+            .background(AppColor.surfaceChrome.opacity(0.92))
             .overlay(
                 RoundedRectangle(cornerRadius: 19, style: .continuous)
                     .stroke(AppColor.borderSubtle.opacity(0.8), lineWidth: 1)
