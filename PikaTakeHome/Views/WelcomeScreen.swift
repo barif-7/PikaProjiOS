@@ -32,7 +32,7 @@ struct WelcomeScreen: View {
 
                     PhoneField(text: $viewModel.phoneNumber)
 
-                    PrimaryButton(title: "Continue", enabled: viewModel.canContinue) {
+                    PrimaryButton(title: AppStrings.welcomeContinue, enabled: viewModel.canContinue) {
                         viewModel.continueTapped()
                     }
                     .padding(.top, 2)
@@ -44,7 +44,7 @@ struct WelcomeScreen: View {
                         CircleIconButton(systemName: "envelope.fill")
                     }
 
-                    Text("Sign in to agree to terms")
+                    Text(AppStrings.welcomeTerms)
                         .font(AppFont.mono(11))
                         .foregroundStyle(AppColor.textSecondary)
                         .padding(.top, 2)

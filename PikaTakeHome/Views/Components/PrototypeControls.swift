@@ -39,7 +39,7 @@ struct PhoneField: View {
             .frame(height: AppControlSize.inputHeight)
             .background(Color.white.opacity(0.58))
 
-            TextField("Phone number", text: $text)
+            TextField(String(localized: AppStrings.phoneNumberPlaceholder), text: $text)
 #if os(iOS)
                 .keyboardType(.phonePad)
 #endif
@@ -58,7 +58,7 @@ struct PhoneField: View {
 }
 
 struct PrimaryButton: View {
-    let title: String
+    let title: LocalizedStringResource
     let enabled: Bool
     let action: () -> Void
 
@@ -72,7 +72,7 @@ struct PrimaryButton: View {
 }
 
 struct SecondaryButton: View {
-    let title: String
+    let title: LocalizedStringResource
     let action: () -> Void
 
     var body: some View {
@@ -90,7 +90,7 @@ struct DividerRow: View {
                 .fill(AppColor.borderSubtle)
                 .frame(height: 1)
 
-            Text("Or continue with")
+            Text(AppStrings.continueWith)
                 .font(AppFont.telka(14))
                 .foregroundStyle(AppColor.textSecondary)
 
@@ -163,7 +163,7 @@ struct CircleControl: View {
 }
 
 struct QuoteCard: View {
-    let text: String
+    let text: LocalizedStringResource
 
     var body: some View {
         Text(text)

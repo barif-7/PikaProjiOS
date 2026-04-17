@@ -50,7 +50,7 @@ struct VoiceScreen: View {
                             viewModel.primaryVoiceActionTapped()
                         }
 
-                        Text("Listening...")
+                        Text(AppStrings.voiceListening)
                             .font(AppFont.telka(15, weight: .medium))
                             .foregroundStyle(AppColor.textSecondary)
                     case .complete:

@@ -219,7 +219,7 @@ struct IdentityCardView: View {
                                 }
                             }
 
-                            Text("PROFILE")
+                            Text(AppStrings.identityProfile)
                                 .font(AppFont.mono(10))
                                 .foregroundStyle(AppColor.textSecondary)
                         }
@@ -227,15 +227,15 @@ struct IdentityCardView: View {
                         Spacer()
 
                         VStack(alignment: .leading, spacing: 14) {
-                            cardDetail(title: "LOCATION", value: card.location)
-                            cardDetail(title: "STATUS", value: card.status)
-                            cardDetail(title: "FIND ME ON", value: card.profileLink)
+                            cardDetail(title: AppStrings.identityLocation, value: card.location)
+                            cardDetail(title: AppStrings.identityStatus, value: card.status)
+                            cardDetail(title: AppStrings.identityFindMeOn, value: card.profileLink)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
 
                     HStack {
-                        Text("AI SELF ID")
+                        Text(AppStrings.identityIdentifierLabel)
                             .font(AppFont.dots(16))
                             .foregroundStyle(AppColor.textPrimary.opacity(0.72))
 
@@ -259,7 +259,7 @@ struct IdentityCardView: View {
         .softShadow()
     }
 
-    private func cardDetail(title: String, value: String) -> some View {
+    private func cardDetail(title: LocalizedStringResource, value: LocalizedStringResource) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(AppFont.mono(10))

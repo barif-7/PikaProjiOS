@@ -10,9 +10,9 @@ final class PrototypeVoiceViewModel: ObservableObject {
     var onRestartRequested: (() -> Void)?
     var onConfirmRequested: (() -> Void)?
 
-    var title: String { PrototypeCopy.voiceTitle }
-    var subtitle: String { PrototypeCopy.voiceSubtitle }
-    var quote: String { PrototypeCopy.voiceQuote }
+    let title = AppStrings.voiceTitle
+    let subtitle = AppStrings.voiceSubtitle
+    let quote = AppStrings.voiceQuote
 
     func backTapped() {
         onBackRequested?()

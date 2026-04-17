@@ -6,8 +6,8 @@ final class PrototypeSuccessViewModel: ObservableObject {
 
     var onCloseRequested: (() -> Void)?
 
-    var title: String { PrototypeCopy.successTitle }
-    var subtitle: String { PrototypeCopy.successSubtitle }
+    let title = AppStrings.successTitle
+    let subtitle = AppStrings.successSubtitle
 
     func closeTapped() {
         onCloseRequested?()

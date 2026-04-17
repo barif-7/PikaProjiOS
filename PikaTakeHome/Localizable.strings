@@ -1,0 +1,27 @@
+"prototype.welcome.title" = "YOUR AI SELF IS WAITING";
+"prototype.welcome.subtitle" = "Sign up or log in below";
+"prototype.welcome.continue" = "Continue";
+"prototype.welcome.terms" = "Sign in to agree to terms";
+"prototype.welcome.phone_placeholder" = "Phone number";
+"prototype.shared.continue_with" = "Or continue with";
+
+"prototype.voice.title" = "MAKE YOUR AI SELF SOUND LIKE YOU";
+"prototype.voice.subtitle" = "Read the text below to clone your voice and create an AI Self that talks like you.";
+"prototype.voice.quote" = "My best self is just ahead. The life I've always wanted is here. My goals are in reach. I love affirmations.";
+"prototype.voice.listening" = "Listening...";
+
+"prototype.success.title" = "MEET SEMI";
+"prototype.success.subtitle" = "Your AI Self is ready to chat";
+"prototype.success.open_messages" = "Open Messages";
+"prototype.success.share_id_card" = "Share ID Card";
+
+"prototype.identity.born_on_pika" = "BORN ON PIKA";
+"prototype.identity.birth_date" = "FEB 11, 2026";
+"prototype.identity.profile" = "PROFILE";
+"prototype.identity.location" = "LOCATION";
+"prototype.identity.location_value" = "SAN FRANCISCO, CA";
+"prototype.identity.status" = "STATUS";
+"prototype.identity.status_value" = "ALIVE";
+"prototype.identity.find_me_on" = "FIND ME ON";
+"prototype.identity.profile_link" = "PIKA.ME/LUNA-SMITH";
+"prototype.identity.identifier_label" = "AI SELF ID";

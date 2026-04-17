@@ -6,8 +6,8 @@ final class PrototypeWelcomeViewModel: ObservableObject {
 
     var onContinueRequested: (() -> Void)?
 
-    var title: String { PrototypeCopy.welcomeTitle }
-    var subtitle: String { PrototypeCopy.welcomeSubtitle }
+    let title = AppStrings.welcomeTitle
+    let subtitle = AppStrings.welcomeSubtitle
     var canContinue: Bool {
         phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).count >= 7
     }

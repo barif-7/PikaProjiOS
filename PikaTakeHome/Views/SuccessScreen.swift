@@ -45,8 +45,8 @@ struct SuccessScreen: View {
                 Spacer(minLength: 24)
 
                 VStack(spacing: 12) {
-                    PrimaryButton(title: "Open Messages", enabled: true, action: {})
-                    SecondaryButton(title: "Share ID Card", action: {})
+                    PrimaryButton(title: AppStrings.successOpenMessages, enabled: true, action: {})
+                    SecondaryButton(title: AppStrings.successShareIDCard, action: {})
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 28)
