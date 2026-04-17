@@ -1,0 +1,10 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 159 2" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Progress">
+<path id="Step" d="M0 1H26.5" stroke="var(--stroke-0, #CFC3FF)" stroke-width="2"/>
+<path id="Step_2" d="M26.5 1H53" stroke="var(--stroke-0, #CFC3FF)" stroke-width="2"/>
+<path id="Step_3" d="M53 1H79.5" stroke="var(--stroke-0, #CFC3FF)" stroke-width="2"/>
+<path id="Step_4" d="M79.5 1H106" stroke="var(--stroke-0, #CFC3FF)" stroke-width="2"/>
+<path id="Step_5" d="M106 1H132.5" stroke="var(--stroke-0, #CFC3FF)" stroke-width="2"/>
+<path id="Step_6" d="M132.5 1H159" stroke="var(--stroke-0, #0D0D0D)" stroke-opacity="0.1" stroke-width="2"/>
+</g>
+</svg>
