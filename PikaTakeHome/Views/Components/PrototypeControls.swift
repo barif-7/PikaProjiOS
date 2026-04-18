@@ -11,19 +11,15 @@ struct PrototypeTopBar: View {
                 Group {
                     if ImportedAsset.chevronLeft.existsInBundle {
                         ImportedSVGView(asset: .chevronLeft)
-                            .padding(14)
+                            .padding(AppSpacing.sm)
                     } else {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(AppFont.telka(17, weight: .medium))
                             .foregroundStyle(foregroundStyle)
                     }
                 }
-                .frame(width: 48, height: 48)
-                .background(buttonBackground, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.black.opacity(0.08), lineWidth: 1)
-                )
+                .frame(width: AppControlSize.topButton, height: AppControlSize.topButton)
+                .background(buttonBackground, in: RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
             }
             .buttonStyle(.plain)
 
@@ -35,30 +31,28 @@ struct PrototypeTopBar: View {
 struct PhoneField: View {
     @Binding var text: String
 
-    private let darkPrimary = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
-    private let darkPrimaryMuted = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255).opacity(0.5)
-    private let countryCodeMuted = Color(red: 141 / 255, green: 141 / 255, blue: 143 / 255)
-
     var body: some View {
         HStack(spacing: 0) {
-            HStack(spacing: 7) {
+            HStack(spacing: AppSpacing.xxxs) {
                 Text("🇺🇸")
-                    .font(.system(size: 16))
+                    .font(AppFont.mono(16))
+                    .foregroundStyle(AppColor.textPrimary)
 
                 Text("+1")
                     .font(AppFont.mono(16))
-                    .foregroundStyle(countryCodeMuted)
+                    .foregroundStyle(Color(red: 141 / 255, green: 141 / 255, blue: 143 / 255))
             }
-            .padding(.leading, 14)
-            .padding(.trailing, 10)
+            .padding(.leading, AppSpacing.fieldLeadingInset)
+            .padding(.trailing, AppSpacing.fieldTrailingInset)
             .frame(height: AppControlSize.inputHeight)
-            .background(Color.white.opacity(0.58))
+            .background(AppColor.surfacePrimary)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm, style: .continuous))
 
             ZStack(alignment: .leading) {
                 if text.isEmpty {
                     Text(String(localized: AppStrings.phoneNumberPlaceholder))
                         .font(AppFont.telka(17))
-                        .foregroundStyle(darkPrimaryMuted)
+                        .foregroundStyle(AppColor.textPrimary.opacity(0.5))
                         .allowsHitTesting(false)
                 }
 
@@ -67,15 +61,17 @@ struct PhoneField: View {
                     .keyboardType(.phonePad)
 #endif
                     .font(AppFont.telka(17))
-                    .foregroundStyle(darkPrimary)
+                    .foregroundStyle(AppColor.textPrimary)
             }
-            .padding(.horizontal, 14)
+            .padding(.horizontal, AppSpacing.fieldContentHorizontal)
             .frame(height: AppControlSize.inputHeight)
-            .background(Color.white.opacity(0.58))
+            .background(Color.clear)
         }
+        .padding(AppSpacing.fieldInset)
+        .background(AppColor.surfaceField)
         .overlay(
             RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
-                .stroke(AppColor.borderSubtle.opacity(0.95), lineWidth: 1)
+                .stroke(AppColor.borderSubtle, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
     }
@@ -87,6 +83,8 @@ struct PrimaryButton: View {
     var trailingAsset: ImportedAsset? = nil
     var textColor: Color? = nil
     var backgroundColor: Color? = nil
+    var fontSize: CGFloat = 17
+    var height: CGFloat = AppControlSize.primaryButtonHeight
     let action: () -> Void
 
     var body: some View {
@@ -103,7 +101,9 @@ struct PrimaryButton: View {
             PikaRoundedPrimaryButtonStyle(
                 isEnabled: enabled,
                 textColor: textColor,
-                backgroundColor: backgroundColor
+                backgroundColor: backgroundColor,
+                fontSize: fontSize,
+                height: height
             )
         )
         .disabled(!enabled)
@@ -130,15 +130,13 @@ struct SecondaryButton: View {
 }
 
 struct DividerRow: View {
-    private let dividerText = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255).opacity(0.5)
-
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: AppSpacing.xs + 2) {
             dividerLine
 
             Text(AppStrings.continueWith)
                 .font(AppFont.telka(12, weight: .medium))
-                .foregroundStyle(dividerText)
+                .foregroundStyle(AppColor.textTertiary)
 
             dividerLine
         }
@@ -196,7 +194,7 @@ struct CaptureControls: View {
             Spacer()
             CircleControl(systemName: "arrow.triangle.2.circlepath", action: onFlip)
         }
-        .padding(.horizontal, 34)
+        .padding(.horizontal, AppSpacing.cameraControlsHorizontal)
     }
 }
 
@@ -207,7 +205,7 @@ struct CircleControl: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 20, weight: .semibold))
+                .font(AppFont.telka(20, weight: .medium))
                 .foregroundStyle(.white)
                 .frame(width: 56, height: 56)
                 .background(Color.white.opacity(0.14), in: Circle())
@@ -223,7 +221,7 @@ struct QuoteCard: View {
     var body: some View {
         Text(text)
             .font(AppFont.telka(19, weight: .medium))
-            .foregroundStyle(Color(red: 0.55, green: 0.27, blue: 0.78))
+            .foregroundStyle(AppColor.accentQuote)
             .multilineTextAlignment(.center)
             .lineSpacing(6)
             .padding(.horizontal, 16)
@@ -244,8 +242,8 @@ struct VoiceButton: View {
     }
 
     let style: Style
-    var outerDiameter: CGFloat = 108
-    var innerDiameter: CGFloat = 84
+    var outerDiameter: CGFloat = AppControlSize.voiceButton
+    var innerDiameter: CGFloat = AppControlSize.voiceButtonInner
     var symbolSize: CGFloat = 28
     let action: () -> Void
 
@@ -267,7 +265,7 @@ struct VoiceButton: View {
                             .padding(6)
                     } else {
                         Image(systemName: "mic.fill")
-                            .font(.system(size: symbolSize, weight: .bold))
+                            .font(AppFont.telka(symbolSize, weight: .bold))
                             .foregroundStyle(AppColor.textPrimary)
                     }
                 case .stop:
@@ -287,20 +285,20 @@ struct VoiceCompleteControls: View {
     let onPlay: () -> Void
 
     var body: some View {
-        HStack(spacing: 21) {
+        HStack(spacing: 55) {
             Button(action: onRestart) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(AppFont.telka(18, weight: .medium))
                     .foregroundStyle(AppColor.textPrimary)
             }
-            .buttonStyle(PikaGlassCircleButtonStyle(diameter: 50))
+            .buttonStyle(PikaGlassCircleButtonStyle(diameter: AppControlSize.compactIconButton))
 
             Button(action: onConfirm) {
                 ZStack {
-                    Circle().fill(AppColor.accentMuted).frame(width: 80, height: 80)
-                    Circle().fill(AppColor.accentSecondary).frame(width: 64, height: 64)
+                    Circle().fill(AppColor.accentMuted).frame(width: AppControlSize.voiceButton, height: AppControlSize.voiceButton)
+                    Circle().fill(AppColor.accentSecondary).frame(width: AppControlSize.voiceButton, height: AppControlSize.voiceButton)
                     Image(systemName: "checkmark")
-                        .font(.system(size: 20, weight: .bold))
+                        .font(AppFont.telka(20, weight: .bold))
                         .foregroundStyle(AppColor.textPrimary)
                 }
             }
@@ -309,7 +307,7 @@ struct VoiceCompleteControls: View {
             Button(action: onPlay) {
                 importedIcon(.videoLinePrimary, size: 20, fallback: "play.fill")
             }
-            .buttonStyle(PikaGlassCircleButtonStyle(diameter: 50))
+            .buttonStyle(PikaGlassCircleButtonStyle(diameter: AppControlSize.compactIconButton))
         }
     }
 }
@@ -321,7 +319,7 @@ private func importedIcon(_ asset: ImportedAsset, size: CGFloat, fallback: Strin
             .frame(width: size, height: size)
     } else {
         Image(systemName: fallback)
-            .font(.system(size: size * 0.8, weight: .semibold))
+            .font(AppFont.telka(size * 0.8, weight: .medium))
             .foregroundStyle(AppColor.textPrimary)
     }
 }

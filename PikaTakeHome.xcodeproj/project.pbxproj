@@ -11,6 +11,7 @@
 		1A1A1A1A1A1A1A1A1A1A1A02 /* PrototypeFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A12 /* PrototypeFlow.swift */; };
 		1A1A1A1A1A1A1A1A1A1A1A03 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */; };
 		1A1A1A1A1A1A1A1A1A1A1A04 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 1A1A1A1A1A1A1A1A1A1A1A14 /* fonts */; };
+		2B7F10012A00000100FACE01 /* SelfieAvatarPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7F10002A00000100FACE01 /* SelfieAvatarPipeline.swift */; };
 		1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */; };
 		1D94B0E12F908CF900373810 /* PrototypeCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E02F908CF900373810 /* PrototypeCoordinator.swift */; };
 		1D94B0E32F908CF900373810 /* PrototypeWelcomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */; };
@@ -26,6 +27,8 @@
 		1D94B0F72F908D7400373810 /* PrototypeArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */; };
 		1D94B0F92F90A82F00373810 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B0F82F90A82F00373810 /* Localizable.strings */; };
 		1D94B1002F90A82F00373810 /* ImportedAssets in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B1012F90A82F00373810 /* ImportedAssets */; };
+		A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */; };
+		A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +37,7 @@
 		1A1A1A1A1A1A1A1A1A1A1A12 /* PrototypeFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeFlow.swift; sourceTree = "<group>"; };
 		1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		1A1A1A1A1A1A1A1A1A1A1A14 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = fonts; sourceTree = SOURCE_ROOT; };
+		2B7F10002A00000100FACE01 /* SelfieAvatarPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfieAvatarPipeline.swift; sourceTree = "<group>"; };
 		1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeFlowModels.swift; sourceTree = "<group>"; };
 		1D94B0E02F908CF900373810 /* PrototypeCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeCoordinator.swift; sourceTree = "<group>"; };
 		1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeWelcomeViewModel.swift; sourceTree = "<group>"; };
@@ -49,6 +53,8 @@
 		1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeArtwork.swift; sourceTree = "<group>"; };
 		1D94B0F82F90A82F00373810 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		1D94B1012F90A82F00373810 /* ImportedAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ImportedAssets; sourceTree = "<group>"; };
+		A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesViewModel.swift; sourceTree = "<group>"; };
+		A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				1D94B0DE2F908CD600373810 /* PrototypeFlowModels.swift */,
+				2B7F10002A00000100FACE01 /* SelfieAvatarPipeline.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -118,6 +125,7 @@
 				1D94B0E42F908CF900373810 /* PrototypeCameraViewModel.swift */,
 				1D94B0E62F908CFA00373810 /* PrototypeVoiceViewModel.swift */,
 				1D94B0E82F908CFA00373810 /* PrototypeSuccessViewModel.swift */,
+				A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -131,6 +139,7 @@
 				1D94B0EE2F908D1F00373810 /* CameraScreen.swift */,
 				1D94B0F02F908D2000373810 /* VoiceScreen.swift */,
 				1D94B0F22F908D2000373810 /* SuccessScreen.swift */,
+				A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -218,11 +227,14 @@
 				1D94B0E72F908CFA00373810 /* PrototypeVoiceViewModel.swift in Sources */,
 				1A1A1A1A1A1A1A1A1A1A1A01 /* PikaTakeHomeApp.swift in Sources */,
 				1A1A1A1A1A1A1A1A1A1A1A02 /* PrototypeFlow.swift in Sources */,
+				2B7F10012A00000100FACE01 /* SelfieAvatarPipeline.swift in Sources */,
 				1D94B0E32F908CF900373810 /* PrototypeWelcomeViewModel.swift in Sources */,
 				1D94B0F12F908D2000373810 /* VoiceScreen.swift in Sources */,
+				A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */,
 				1D94B0F52F908D7300373810 /* PrototypeControls.swift in Sources */,
 				1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */,
 				1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */,
+				A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */,
 				1D94B0ED2F908D1F00373810 /* WelcomeScreen.swift in Sources */,
 				1D94B0F32F908D2000373810 /* SuccessScreen.swift in Sources */,
 				1A1A1A1A1A1A1A1A1A1A1A03 /* DesignSystem.swift in Sources */,

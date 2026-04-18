@@ -2,11 +2,12 @@ import SwiftUI
 
 struct SuccessScreen: View {
     @ObservedObject var viewModel: PrototypeSuccessViewModel
+    @Environment(\.designSystem) private var designSystem
 
     var body: some View {
         GeometryReader { proxy in
             let size = proxy.size
-            let horizontalPadding = max(16.0, min(24.0, size.width * 0.05))
+            let horizontalPadding = max(designSystem.spacing.md, min(designSystem.spacing.xl, size.width * 0.05))
             let topPadding = max(12.0, proxy.safeAreaInsets.top + 8.0)
             let bottomPadding = max(20.0, proxy.safeAreaInsets.bottom + 12.0)
             let titleFontSize = min(31.0, max(26.0, size.width * 0.08))
@@ -16,7 +17,7 @@ struct SuccessScreen: View {
             let cardMaxWidth = min(size.width - (horizontalPadding * 2.0), 420.0)
 
             ZStack(alignment: .top) {
-                AppColor.screenBackground.ignoresSafeArea()
+                designSystem.colors.screenBackground.ignoresSafeArea()
 
                 if ImportedAsset.successGlow.existsInBundle {
                     ImportedSVGView(asset: .successGlow)
@@ -38,15 +39,15 @@ struct SuccessScreen: View {
                                         .padding(12)
                                 } else {
                                     Image(systemName: "xmark")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundStyle(AppColor.textPrimary)
+                                        .font(designSystem.fonts.telka(13, weight: .medium))
+                                        .foregroundStyle(designSystem.colors.textPrimary)
                                 }
                             }
-                            .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.18), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .frame(width: designSystem.controlSize.closeButton, height: designSystem.controlSize.closeButton)
+                            .background(designSystem.colors.surfaceChrome, in: RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(AppColor.borderSubtle.opacity(0.35), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous)
+                                    .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -56,17 +57,17 @@ struct SuccessScreen: View {
 
                     Spacer(minLength: max(12.0, size.height * 0.02))
 
-                    VStack(spacing: 12) {
+                    VStack(spacing: designSystem.spacing.sm) {
                         Text(viewModel.title)
-                            .font(AppFont.telka(titleFontSize, weight: .bold))
-                            .foregroundStyle(AppColor.textPrimary)
+                            .font(designSystem.fonts.telka(titleFontSize, weight: .bold))
+                            .foregroundStyle(designSystem.colors.textPrimary)
                             .multilineTextAlignment(.center)
                             .minimumScaleFactor(0.85)
                             .lineLimit(2)
 
                         Text(viewModel.subtitle)
-                            .font(AppFont.telka(subtitleFontSize))
-                            .foregroundStyle(AppColor.textSecondary)
+                            .font(designSystem.fonts.telka(subtitleFontSize))
+                            .foregroundStyle(designSystem.colors.textSecondary)
                             .multilineTextAlignment(.center)
                             .minimumScaleFactor(0.9)
                             .lineLimit(3)
@@ -81,14 +82,23 @@ struct SuccessScreen: View {
 
                     Spacer(minLength: max(20.0, size.height * 0.03))
 
-                    VStack(spacing: 12) {
-                        PrimaryButton(title: AppStrings.successOpenMessages, enabled: true, trailingAsset: .arrowTopRight, action: {})
+                    VStack(spacing: 10) {
+                        PrimaryButton(
+                            title: AppStrings.successOpenMessages,
+                            enabled: true,
+                            trailingAsset: .arrowTopRight,
+                            textColor: designSystem.colors.textInverse,
+                            backgroundColor: designSystem.colors.successPrimaryButton,
+                            fontSize: 15,
+                            height: designSystem.controlSize.secondaryButtonHeight,
+                            action: { viewModel.openMessagesTapped() }
+                        )
                         SecondaryButton(title: AppStrings.successShareIDCard, trailingAsset: .shareIcon, action: {})
                     }
                     .padding(.horizontal, horizontalPadding)
                     .padding(.bottom, bottomPadding)
                 }
-                .frame(width: size.width, height: size.height, alignment: .top)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
             .frame(width: size.width, height: size.height)
         }

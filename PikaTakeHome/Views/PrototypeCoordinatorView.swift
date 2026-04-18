@@ -31,6 +31,8 @@ struct PrototypeCoordinatorView: View {
             VoiceScreen(viewModel: coordinator.voiceViewModel)
         case .success:
             SuccessScreen(viewModel: coordinator.successViewModel)
+        case .messages:
+            MessagesScreen(viewModel: coordinator.messagesViewModel)
         }
     }
 }

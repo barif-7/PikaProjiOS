@@ -2,31 +2,32 @@ import SwiftUI
 
 struct VoiceScreen: View {
     @ObservedObject var viewModel: PrototypeVoiceViewModel
+    @Environment(\.designSystem) private var designSystem
 
-    private let titleColor = Color(red: 13.0 / 255.0, green: 13.0 / 255.0, blue: 13.0 / 255.0)
-    private let subtitleColor = Color(red: 34.0 / 255.0, green: 34.0 / 255.0, blue: 34.0 / 255.0).opacity(0.6)
-    private let quoteColor = Color(red: 128.0 / 255.0, green: 110.0 / 255.0, blue: 202.0 / 255.0)
-    private let overlayColor = Color(red: 252.0 / 255.0, green: 250.0 / 255.0, blue: 247.0 / 255.0).opacity(0.9)
+    private var titleColor: Color { designSystem.colors.textPrimary }
+    private var subtitleColor: Color { designSystem.colors.textSecondary }
+    private var quoteColor: Color { designSystem.colors.accentQuote }
+    private var overlayColor: Color { designSystem.colors.surfaceOverlay }
 
     var body: some View {
         ZStack {
-            AppColor.screenBackgroundElevated.ignoresSafeArea()
+            designSystem.colors.screenBackgroundElevated.ignoresSafeArea()
 
             if ImportedAsset.voiceBackground.existsInBundle {
                 ImportedBitmapImage(asset: .voiceBackground, contentMode: .fill)
                     .ignoresSafeArea()
-                    .blur(radius: 34)
+                    .blur(radius: 32)
                     .overlay(overlayColor)
             }
 
             VStack(spacing: 0) {
                 PrototypeTopBar(
                     foregroundStyle: titleColor,
-                    buttonBackground: Color.white.opacity(0.40)
+                    buttonBackground: designSystem.colors.surfaceChrome
                 ) {
                     viewModel.backTapped()
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, designSystem.spacing.xl)
                 .padding(.top, 51)
 
                 progressLine
@@ -36,29 +37,38 @@ struct VoiceScreen: View {
 
                 VStack(spacing: 8) {
                     Text(viewModel.title)
-                        .font(.custom("Telka Extended", size: 32).weight(.black))
+                        .font(designSystem.fonts.telka(32, weight: .black))
                         .multilineTextAlignment(.center)
                         .foregroundStyle(titleColor)
-                        .lineLimit(3)
-                        .padding(.horizontal, 24)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
 
                     Text(viewModel.subtitle)
-                        .font(AppFont.telka(15))
+                        .font(designSystem.fonts.telka(15))
                         .foregroundStyle(subtitleColor)
                         .multilineTextAlignment(.center)
-                        .lineLimit(3)
-                        .padding(.horizontal, 62)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, designSystem.spacing.quoteInset)
+
+                if let avatarImage = viewModel.avatarImage {
+                    avatarPreview(avatarImage)
+                        .padding(.top, 28)
                 }
 
-                Spacer(minLength: 96)
+                Spacer(minLength: viewModel.avatarImage == nil ? 96 : 40)
 
                 Text(viewModel.quote)
-                    .font(.custom("Telka Extended", size: 28).weight(.medium))
+                    .font(designSystem.fonts.telka(28, weight: .medium))
                     .foregroundStyle(quoteColor)
                     .multilineTextAlignment(.center)
                     .lineSpacing(8)
-                    .lineLimit(3)
-                    .padding(.horizontal, 24)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: 345, alignment: .center)
+                    .frame(maxWidth: .infinity, minHeight: 180)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Spacer(minLength: 92)
 
@@ -69,26 +79,54 @@ struct VoiceScreen: View {
                             viewModel.primaryVoiceActionTapped()
                         }
                     case .recording:
-                        VoiceButton(style: .stop, outerDiameter: 80, innerDiameter: 62, symbolSize: 20) {
+                        VoiceButton(style: .stop, outerDiameter: designSystem.controlSize.voiceButton, innerDiameter: 62, symbolSize: 20) {
                             viewModel.primaryVoiceActionTapped()
                         }
+                        .disabled(viewModel.isTraining)
 
-                        Text(AppStrings.voiceListening)
-                            .font(AppFont.telka(15, weight: .medium))
+                        Text(viewModel.recordingStatusText)
+                            .font(designSystem.fonts.telka(15, weight: .medium))
                             .foregroundStyle(subtitleColor)
-                            .lineLimit(3)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
                     case .complete:
-                        VoiceCompleteControls(
-                            onRestart: { viewModel.restartTapped() },
-                            onConfirm: { viewModel.confirmTapped() },
-                            onPlay: {}
-                        )
+                        if viewModel.isTraining {
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                    .tint(titleColor)
+
+                                if let statusMessage = viewModel.statusMessage {
+                                    Text(statusMessage)
+                                        .font(designSystem.fonts.telka(15, weight: .medium))
+                                        .foregroundStyle(subtitleColor)
+                                        .multilineTextAlignment(.center)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .frame(maxWidth: .infinity)
+                                }
+                            }
+                        } else {
+                            VoiceCompleteControls(
+                                onRestart: { viewModel.restartTapped() },
+                                onConfirm: { viewModel.confirmTapped() },
+                                onPlay: {}
+                            )
+                        }
                     }
                 }
                 .padding(.bottom, 55)
             }
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
+            .padding(.horizontal, designSystem.spacing.voiceScreenInset)
+            .padding(.bottom, designSystem.spacing.voiceScreenInset)
+        }
+        .alert(item: $viewModel.alert) { message in
+            Alert(
+                title: Text(message.title),
+                message: Text(message.message),
+                dismissButton: .default(Text("OK")) {
+                    viewModel.alert = nil
+                }
+            )
         }
     }
 
@@ -104,12 +142,12 @@ struct VoiceScreen: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(AppColor.accentSecondary)
-                    .frame(width: 80, height: 80)
+                    .fill(designSystem.colors.accentSecondary)
+                    .frame(width: designSystem.controlSize.voiceButton, height: designSystem.controlSize.voiceButton)
 
                 if ImportedAsset.voiceRecordButton.existsInBundle {
                     ImportedSVGView(asset: .voiceRecordButton)
-                        .frame(width: 80, height: 80)
+                        .frame(width: designSystem.controlSize.voiceButton, height: designSystem.controlSize.voiceButton)
                         .allowsHitTesting(false)
                 } else {
                     Circle()
@@ -117,9 +155,23 @@ struct VoiceScreen: View {
                         .frame(width: 20, height: 20)
                 }
             }
-            .frame(width: 80, height: 80)
+            .frame(width: designSystem.controlSize.voiceButton, height: designSystem.controlSize.voiceButton)
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .disabled(viewModel.isTraining)
+    }
+
+    private func avatarPreview(_ image: UIImage) -> some View {
+        Image(uiImage: image)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 96, height: 96)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(Color.white.opacity(0.7), lineWidth: 2)
+            )
+            .shadow(color: Color.black.opacity(0.12), radius: 18, x: 0, y: 10)
     }
 }

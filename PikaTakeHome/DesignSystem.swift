@@ -1,8 +1,12 @@
 import SwiftUI
 
+// MARK: - Static Style Types
+
 enum AppFont {
     static func telka(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         switch weight {
+        case .black:
+            return .custom("Telka Extended", size: size).weight(.black)
         case .bold:
             return .custom("Telka Extended", size: size).weight(.bold)
         case .semibold:
@@ -18,6 +22,8 @@ enum AppFont {
 
     static func telkaCompact(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         switch weight {
+        case .black:
+            return .custom("Telka", size: size).weight(.black)
         case .bold:
             return .custom("Telka", size: size).weight(.bold)
         case .semibold:
@@ -33,6 +39,8 @@ enum AppFont {
 
     static func mono(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         switch weight {
+        case .black:
+            return .custom("Space Mono", size: size).weight(.black)
         case .bold:
             return .custom("Space Mono", size: size).weight(.bold)
         case .semibold:
@@ -63,22 +71,37 @@ enum AppSpacing {
     static let xxxl: CGFloat = 40
     static let screenHorizontal: CGFloat = 24
     static let screenVertical: CGFloat = 24
+    static let fieldInset: CGFloat = 4
+    static let fieldContentHorizontal: CGFloat = 14
+    static let fieldLeadingInset: CGFloat = 16
+    static let fieldTrailingInset: CGFloat = 10
+    static let quoteInset: CGFloat = 39
+    static let cameraChromeHorizontal: CGFloat = 18
+    static let cameraControlsHorizontal: CGFloat = 34
+    static let voiceScreenInset: CGFloat = 12
+    static let successSectionGap: CGFloat = 24
 }
 
 enum AppRadius {
     static let xs: CGFloat = 10
-    static let sm: CGFloat = 12
+    static let sm: CGFloat = 16
     static let md: CGFloat = 18
     static let lg: CGFloat = 24
     static let xl: CGFloat = 32
+    static let xxl: CGFloat = 36
     static let pill: CGFloat = 999
 }
 
 enum AppControlSize {
     static let topButton: CGFloat = 48
-    static let inputHeight: CGFloat = 58
-    static let primaryButtonHeight: CGFloat = 58
+    static let closeButton: CGFloat = 44
+    static let inputHeight: CGFloat = 48
+    static let primaryButtonHeight: CGFloat = 56
+    static let secondaryButtonHeight: CGFloat = 48
     static let iconButton: CGFloat = 64
+    static let compactIconButton: CGFloat = 48
+    static let voiceButton: CGFloat = 80
+    static let voiceButtonInner: CGFloat = 64
 }
 
 enum AppShadow {
@@ -89,39 +112,78 @@ enum AppShadow {
 }
 
 enum AppColor {
-    // Raw palette
-    static let parchment = Color(red: 0.972, green: 0.961, blue: 0.945)
-    static let parchment2 = Color(red: 0.991, green: 0.988, blue: 0.981)
-    static let pearl = Color(red: 0.953, green: 0.947, blue: 0.935)
-    static let ink = Color(red: 0.12, green: 0.12, blue: 0.14)
-    static let muted = Color(red: 0.51, green: 0.49, blue: 0.49)
-    static let line = Color(red: 0.82, green: 0.81, blue: 0.80)
-    static let lavender = Color(red: 0.78, green: 0.72, blue: 0.96)
-    static let lavenderDeep = Color(red: 0.47, green: 0.42, blue: 0.84)
-    static let lavenderSoft = Color(red: 0.89, green: 0.84, blue: 0.98)
-    static let lavenderTint = Color(red: 0.95, green: 0.93, blue: 0.99)
-    static let card = Color(red: 0.98, green: 0.97, blue: 0.95)
+    // Raw palette from Figma MCP
+    static let creamBase = Color(red: 253 / 255, green: 247 / 255, blue: 239 / 255)
+    static let creamSurface = Color(red: 252 / 255, green: 250 / 255, blue: 247 / 255)
+    static let inkPrimary = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
+    static let inkSecondary = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255)
+    static let lineDark = inkPrimary.opacity(0.25)
+    static let washDark = inkPrimary.opacity(0.05)
+    static let glassLight = Color.white.opacity(0.10)
+    static let lavenderPrimary = Color(red: 207 / 255, green: 195 / 255, blue: 1.0)
+    static let lavenderQuote = Color(red: 128 / 255, green: 110 / 255, blue: 202 / 255)
+    static let successStroke = Color(red: 19 / 255, green: 17 / 255, blue: 14 / 255).opacity(0.12)
+    static let successCardBottom = Color(red: 247 / 255, green: 244 / 255, blue: 235 / 255).opacity(0.5)
 
     // Semantic roles
-    static let screenBackground = parchment
-    static let screenBackgroundElevated = parchment2
-    static let surfacePrimary = parchment2
-    static let surfaceSecondary = card
-    static let surfaceAccent = lavenderSoft
-    static let surfaceChrome = pearl
+    static let screenBackground = creamBase
+    static let screenBackgroundElevated = creamBase
+    static let surfacePrimary = creamSurface
+    static let surfaceSecondary = creamSurface
+    static let surfaceAccent = lavenderPrimary
+    static let surfaceChrome = washDark
+    static let surfaceField = washDark
+    static let surfaceGlass = glassLight
+    static let surfaceOverlay = creamSurface.opacity(0.9)
+    static let surfaceSuccessCardTop = Color.white.opacity(0.5)
+    static let surfaceSuccessCardBottom = successCardBottom
 
-    static let textPrimary = ink
-    static let textSecondary = muted
+    static let textPrimary = inkPrimary
+    static let textSecondary = inkSecondary.opacity(0.6)
+    static let textTertiary = inkSecondary.opacity(0.5)
     static let textInverse = Color.white
 
-    static let borderSubtle = line
-    static let accentPrimary = lavenderDeep
-    static let accentSecondary = lavender
-    static let accentMuted = lavenderSoft
+    static let borderSubtle = lineDark
+    static let accentPrimary = lavenderPrimary
+    static let accentSecondary = lavenderPrimary
+    static let accentMuted = lavenderPrimary
+    static let accentQuote = lavenderQuote
     static let cameraBackground = Color.black
+    static let successPrimaryButton = inkSecondary
 
     static let shadow = AppShadow.softColor
 }
+
+// MARK: - DesignSystem Struct & EnvironmentKey
+
+struct DesignSystem {
+    let colors: AppColor.Type
+    let fonts: AppFont.Type
+    let spacing: AppSpacing.Type
+    let radius: AppRadius.Type
+    let controlSize: AppControlSize.Type
+
+    static let `default` = DesignSystem(
+        colors: AppColor.self,
+        fonts: AppFont.self,
+        spacing: AppSpacing.self,
+        radius: AppRadius.self,
+        controlSize: AppControlSize.self
+    )
+}
+
+private struct DesignSystemKey: EnvironmentKey {
+    static let defaultValue: DesignSystem = .default
+}
+
+extension EnvironmentValues {
+    var designSystem: DesignSystem {
+        get { self[DesignSystemKey.self] }
+        set { self[DesignSystemKey.self] = newValue }
+    }
+}
+
+// MARK: - ViewModifiers (optional)
 
 struct SoftShadow: ViewModifier {
     func body(content: Content) -> some View {
@@ -153,58 +215,26 @@ extension View {
     }
 }
 
-struct PikaPrimaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(AppFont.telkaCompact(16, weight: .medium))
-            .foregroundStyle(AppColor.textInverse)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.md)
-            .background(AppColor.accentPrimary)
-            .clipShape(Capsule())
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .opacity(configuration.isPressed ? 0.92 : 1)
-            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
-    }
-}
-
-struct PikaSecondaryButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(AppFont.telkaCompact(16, weight: .medium))
-            .foregroundStyle(AppColor.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, AppSpacing.lg)
-            .padding(.vertical, AppSpacing.md)
-            .background(AppColor.surfacePrimary)
-            .overlay(
-                Capsule()
-                    .stroke(AppColor.borderSubtle, lineWidth: 1)
-            )
-            .clipShape(Capsule())
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .opacity(configuration.isPressed ? 0.92 : 1)
-            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
-    }
-}
+// MARK: - Button Styles
 
 struct PikaRoundedPrimaryButtonStyle: ButtonStyle {
     let isEnabled: Bool
     let textColor: Color?
     let backgroundColor: Color?
+    let fontSize: CGFloat
+    let height: CGFloat
 
     func makeBody(configuration: Configuration) -> some View {
         let resolvedTextColor = textColor ?? AppColor.textPrimary
         let resolvedBackgroundColor = backgroundColor ?? AppColor.accentSecondary
 
         configuration.label
-            .font(AppFont.telka(17, weight: .medium))
+            .font(AppFont.telka(fontSize, weight: .medium))
             .frame(maxWidth: .infinity)
-            .frame(height: 56)
+            .frame(height: height)
             .foregroundStyle(isEnabled ? resolvedTextColor : resolvedTextColor.opacity(0.35))
             .background(isEnabled ? resolvedBackgroundColor : AppColor.accentMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
             .scaleEffect(configuration.isPressed && isEnabled ? 0.99 : 1)
             .opacity(configuration.isPressed && isEnabled ? 0.95 : 1)
             .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
@@ -214,16 +244,16 @@ struct PikaRoundedPrimaryButtonStyle: ButtonStyle {
 struct PikaRoundedSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(AppFont.telka(17, weight: .medium))
+            .font(AppFont.telka(15, weight: .medium))
             .frame(maxWidth: .infinity)
-            .frame(height: 48)
+            .frame(height: AppControlSize.secondaryButtonHeight)
             .foregroundStyle(AppColor.textPrimary)
-            .background(AppColor.surfaceChrome.opacity(0.92))
+            .background(AppColor.surfaceChrome)
             .overlay(
-                RoundedRectangle(cornerRadius: 19, style: .continuous)
-                    .stroke(AppColor.borderSubtle.opacity(0.8), lineWidth: 1)
+                RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous)
+                    .stroke(AppColor.borderSubtle, lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
             .scaleEffect(configuration.isPressed ? 0.99 : 1)
             .opacity(configuration.isPressed ? 0.95 : 1)
             .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
@@ -236,8 +266,7 @@ struct PikaGlassCircleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(width: diameter, height: diameter)
-            .background(Color.white.opacity(0.56), in: Circle())
-            .overlay(Circle().stroke(AppColor.borderSubtle.opacity(0.7), lineWidth: 1))
+            .background(AppColor.surfaceChrome, in: Circle())
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .opacity(configuration.isPressed ? 0.92 : 1)
             .animation(.easeOut(duration: 0.16), value: configuration.isPressed)

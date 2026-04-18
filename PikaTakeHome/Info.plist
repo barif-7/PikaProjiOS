@@ -18,6 +18,15 @@
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We use the front camera so you can take a selfie for your AI Self.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We use the microphone so you can record a voice sample for your AI Self.</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <true/>
+    </dict>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIAppFonts</key>

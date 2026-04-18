@@ -9,6 +9,7 @@ final class PrototypeCoordinator: ObservableObject {
     let cameraViewModel = PrototypeCameraViewModel()
     let voiceViewModel = PrototypeVoiceViewModel()
     let successViewModel = PrototypeSuccessViewModel()
+    let messagesViewModel = PrototypeMessagesViewModel()
 
     private var pendingTransitionTask: Task<Void, Never>?
 
@@ -30,6 +31,8 @@ final class PrototypeCoordinator: ObservableObject {
             return "voice-\(String(describing: stage))"
         case .success:
             return "success"
+        case .messages:
+            return "messages"
         }
     }
 
@@ -64,6 +67,13 @@ final class PrototypeCoordinator: ObservableObject {
         successViewModel.onCloseRequested = { [weak self] in
             self?.resetFlow()
         }
+        successViewModel.onOpenMessagesRequested = { [weak self] in
+            self?.showMessages()
+        }
+
+        messagesViewModel.onBackRequested = { [weak self] in
+            self?.showSuccess()
+        }
     }
 
     private func showWelcome() {
@@ -76,6 +86,10 @@ final class PrototypeCoordinator: ObservableObject {
     }
 
     private func showVoicePrompt() {
+        let generatedAvatar = cameraViewModel.generatedAvatarImage
+        voiceViewModel.setAvatarImage(generatedAvatar)
+        successViewModel.setAvatarImage(generatedAvatar)
+        messagesViewModel.setAvatarImage(generatedAvatar)
         voiceViewModel.stage = .prompt
         route = .voice(.prompt)
     }
@@ -91,16 +105,18 @@ final class PrototypeCoordinator: ObservableObject {
     }
 
     private func completeVoiceStep() {
-        guard !isProcessing else { return }
-
-        isProcessing = true
         pendingTransitionTask?.cancel()
-        pendingTransitionTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(600))
-            guard let self, !Task.isCancelled else { return }
-            self.isProcessing = false
-            self.route = .success
-        }
+        isProcessing = false
+        messagesViewModel.setVoiceProfileID(voiceViewModel.trainedVoiceProfileID)
+        showSuccess()
+    }
+
+    private func showSuccess() {
+        route = .success
+    }
+
+    private func showMessages() {
+        route = .messages
     }
 
     private func resetFlow() {
@@ -109,5 +125,8 @@ final class PrototypeCoordinator: ObservableObject {
         route = .welcome
         welcomeViewModel.reset()
         voiceViewModel.reset()
+        successViewModel.setAvatarImage(nil)
+        messagesViewModel.setAvatarImage(nil)
+        messagesViewModel.setVoiceProfileID(nil)
     }
 }

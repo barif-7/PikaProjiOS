@@ -642,7 +642,7 @@ struct IdentityCardView: View {
                         .padding(.top, 4)
                 } else {
                     Image(systemName: "hare.fill")
-                        .font(.system(size: 24, weight: .black))
+                        .font(AppFont.telka(24, weight: .black))
                         .foregroundStyle(AppColor.textPrimary)
                         .padding(.top, 4)
                 }
@@ -687,24 +687,28 @@ struct IdentityCardView: View {
         .background(
             LinearGradient(
                 colors: [
-                    Color.white.opacity(0.96),
-                    Color(red: 0.97, green: 0.96, blue: 0.92).opacity(0.94)
+                    AppColor.surfaceSuccessCardTop,
+                    AppColor.surfaceSuccessCardBottom
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         )
-        .clipShape(RoundedRectangle(cornerRadius: 36, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.xxl, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 36, style: .continuous)
-                .stroke(Color.black.opacity(0.12), lineWidth: 0.8)
+            RoundedRectangle(cornerRadius: AppRadius.xxl, style: .continuous)
+                .stroke(AppColor.successStroke, lineWidth: 0.8)
         )
         .shadow(color: Color.black.opacity(0.15), radius: 30, x: 8, y: 14)
     }
 
     private var portrait: some View {
         Group {
-            if ImportedAsset.semiPortrait.existsInBundle {
+            if let avatarImage = card.avatarImage {
+                Image(uiImage: avatarImage)
+                    .resizable()
+                    .scaledToFill()
+            } else if ImportedAsset.semiPortrait.existsInBundle {
                 ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
             } else {
                 LinearGradient(
