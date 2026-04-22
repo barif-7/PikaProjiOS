@@ -1,6 +1,6 @@
-# Pika iOS Take-Home
+# PikaProjiOS
 
-SwiftUI implementation of the 6-step prototype flow from Figma.
+SwiftUI implementation of the Pika iOS prototype flow.
 
 ## What’s in here
 - Phone sign-in landing screen
@@ -9,7 +9,7 @@ SwiftUI implementation of the 6-step prototype flow from Figma.
 - Final AI self success card
 - Open Messages voice-chat screen
 - Bundled custom fonts from the handoff
-- `voice-backend/` for the self-hosted Whisper + Ollama + Piper integration used by Open Messages
+- iOS-only app code, assets, and tests
 
 ## Architecture
 - Single `PrototypeViewModel` drives the whole flow as a small state machine.
@@ -24,16 +24,13 @@ SwiftUI implementation of the 6-step prototype flow from Figma.
 ## Open Messages backend
 - The app expects `POST /voice-chat/turn` from `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL`.
 - The app expects `POST /voice-profiles` and `GET /voice-profiles/{jobId}` from `VoiceTrainingBaseURL` or `VOICE_TRAINING_BASE_URL`.
-- A reference backend lives in `voice-backend/` and is designed for:
-  - Whisper CLI for speech-to-text
-  - Ollama serving an open model such as `mistral`
-  - Piper for optional text-to-speech audio
-- Simulator example:
-  - run `./voice-backend/run-local.sh`
-  - the app defaults to `http://127.0.0.1:8080` for both chat and training in the simulator
-- Physical device example:
-  - run the backend on your Mac and use your Mac’s LAN IP, for example `http://192.168.1.20:8080`
-  - set `VoiceChatBaseURL`, `VoiceTrainingBaseURL`, `VOICE_CHAT_BASE_URL`, or `VOICE_TRAINING_BASE_URL` to that LAN address
+- The backend now lives in the separate `PikaProjBackend` repo.
+- This iOS repo does not include backend source or local backend scripts.
+- To run against a simulator or physical device, point the app at a reachable backend URL via:
+  - `VoiceChatBaseURL`
+  - `VoiceTrainingBaseURL`
+  - `VOICE_CHAT_BASE_URL`
+  - `VOICE_TRAINING_BASE_URL`
 
 ## Revisit with more time
 - Stream partial transcripts and partial TTS audio instead of full-turn request/response.
@@ -44,3 +41,6 @@ SwiftUI implementation of the 6-step prototype flow from Figma.
 - Should the final card always say “SEMI”, or should that be user-generated?
 - What’s the actual phone auth and voice-upload contract?
 - Should the capture and recording screens be strictly guided, or can users skip ahead?
+
+## Related repo
+- Backend: `https://github.com/barif-7/PikaProjBackend`
