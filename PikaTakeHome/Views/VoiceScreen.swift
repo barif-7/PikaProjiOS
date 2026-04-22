@@ -1,5 +1,13 @@
+//
+//  VoiceScreen.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
+/// Voice onboarding screen that records and submits a training sample.
 struct VoiceScreen: View {
     @ObservedObject var viewModel: PrototypeVoiceViewModel
     @Environment(\.designSystem) private var designSystem
@@ -33,88 +41,24 @@ struct VoiceScreen: View {
                 progressLine
                     .padding(.top, -24)
 
-                Spacer(minLength: 56)
+                Spacer(minLength: 0)
 
-                VStack(spacing: 8) {
-                    Text(viewModel.title)
-                        .font(designSystem.fonts.telka(32, weight: .black))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(titleColor)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
+                VStack(spacing: 0) {
+                    headerSection
 
-                    Text(viewModel.subtitle)
-                        .font(designSystem.fonts.telka(15))
-                        .foregroundStyle(subtitleColor)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, designSystem.spacing.quoteInset)
-
-                if let avatarImage = viewModel.avatarImage {
-                    avatarPreview(avatarImage)
+                    avatarPreview
                         .padding(.top, 28)
+
+                    quoteSection
+                        .padding(.top, 28)
+
+                    controlsSection
+                        .padding(.top, 40)
                 }
+                .frame(maxWidth: 345)
+                .frame(maxWidth: .infinity)
 
-                Spacer(minLength: viewModel.avatarImage == nil ? 96 : 40)
-
-                Text(viewModel.quote)
-                    .font(designSystem.fonts.telka(28, weight: .medium))
-                    .foregroundStyle(quoteColor)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(8)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: 345, alignment: .center)
-                    .frame(maxWidth: .infinity, minHeight: 180)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer(minLength: 92)
-
-                VStack(spacing: 14) {
-                    switch viewModel.stage {
-                    case .prompt:
-                        voicePromptButton {
-                            viewModel.primaryVoiceActionTapped()
-                        }
-                    case .recording:
-                        VoiceButton(style: .stop, outerDiameter: designSystem.controlSize.voiceButton, innerDiameter: 62, symbolSize: 20) {
-                            viewModel.primaryVoiceActionTapped()
-                        }
-                        .disabled(viewModel.isTraining)
-
-                        Text(viewModel.recordingStatusText)
-                            .font(designSystem.fonts.telka(15, weight: .medium))
-                            .foregroundStyle(subtitleColor)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .frame(maxWidth: .infinity)
-                    case .complete:
-                        if viewModel.isTraining {
-                            VStack(spacing: 12) {
-                                ProgressView()
-                                    .tint(titleColor)
-
-                                if let statusMessage = viewModel.statusMessage {
-                                    Text(statusMessage)
-                                        .font(designSystem.fonts.telka(15, weight: .medium))
-                                        .foregroundStyle(subtitleColor)
-                                        .multilineTextAlignment(.center)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                        .frame(maxWidth: .infinity)
-                                }
-                            }
-                        } else {
-                            VoiceCompleteControls(
-                                onRestart: { viewModel.restartTapped() },
-                                onConfirm: { viewModel.confirmTapped() },
-                                onPlay: {}
-                            )
-                        }
-                    }
-                }
-                .padding(.bottom, 55)
+                Spacer(minLength: 0)
             }
             .padding(.horizontal, designSystem.spacing.voiceScreenInset)
             .padding(.bottom, designSystem.spacing.voiceScreenInset)
@@ -128,6 +72,84 @@ struct VoiceScreen: View {
                 }
             )
         }
+    }
+
+    private var headerSection: some View {
+        VStack(spacing: 8) {
+            Text(viewModel.title)
+                .font(designSystem.fonts.telka(32, weight: .black))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(titleColor)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+
+            Text(viewModel.subtitle)
+                .font(designSystem.fonts.telka(15))
+                .foregroundStyle(subtitleColor)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity)
+        }
+        .padding(.horizontal, 39)
+    }
+
+    private var quoteSection: some View {
+        Text(viewModel.quote)
+            .font(designSystem.fonts.telka(28, weight: .medium))
+            .foregroundStyle(quoteColor)
+            .multilineTextAlignment(.center)
+            .lineSpacing(8)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: 345)
+            .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var controlsSection: some View {
+        VStack(spacing: 14) {
+            switch viewModel.stage {
+            case .prompt:
+                voicePromptButton {
+                    viewModel.primaryVoiceActionTapped()
+                }
+            case .recording:
+                VoiceButton(style: .stop, outerDiameter: designSystem.controlSize.voiceButton, innerDiameter: 62, symbolSize: 20) {
+                    viewModel.primaryVoiceActionTapped()
+                }
+                .disabled(viewModel.isTraining)
+
+                Text(viewModel.recordingStatusText)
+                    .font(designSystem.fonts.telka(15, weight: .medium))
+                    .foregroundStyle(subtitleColor)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity)
+            case .complete:
+                if viewModel.isTraining {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .tint(titleColor)
+
+                        if let statusMessage = viewModel.statusMessage {
+                            Text(statusMessage)
+                                .font(designSystem.fonts.telka(15, weight: .medium))
+                                .foregroundStyle(subtitleColor)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                } else {
+                    VoiceCompleteControls(
+                        onRestart: { viewModel.restartTapped() },
+                        onConfirm: { viewModel.confirmTapped() },
+                        onPlay: {}
+                    )
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 55)
     }
 
     @ViewBuilder
@@ -162,10 +184,8 @@ struct VoiceScreen: View {
         .disabled(viewModel.isTraining)
     }
 
-    private func avatarPreview(_ image: UIImage) -> some View {
-        Image(uiImage: image)
-            .resizable()
-            .scaledToFill()
+    private var avatarPreview: some View {
+        avatarImage
             .frame(width: 96, height: 96)
             .clipShape(Circle())
             .overlay(
@@ -173,5 +193,24 @@ struct VoiceScreen: View {
                     .stroke(Color.white.opacity(0.7), lineWidth: 2)
             )
             .shadow(color: Color.black.opacity(0.12), radius: 18, x: 0, y: 10)
+    }
+
+    @ViewBuilder
+    private var avatarImage: some View {
+        if let image = viewModel.avatarImage {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+        } else if ImportedAsset.semiPortrait.existsInBundle {
+            ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
+        } else {
+            Circle()
+                .fill(designSystem.colors.accentSecondary)
+                .overlay {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.system(size: 48, weight: .medium))
+                        .foregroundStyle(titleColor)
+                }
+        }
     }
 }

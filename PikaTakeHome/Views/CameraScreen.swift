@@ -1,8 +1,16 @@
+//
+//  CameraScreen.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 @preconcurrency import AVFoundation
 import ImagePlayground
 import SwiftUI
 import UIKit
 
+/// Selfie capture screen used to prepare an AI avatar.
 struct CameraScreen: View {
     @ObservedObject var viewModel: PrototypeCameraViewModel
     @Environment(\.designSystem) private var designSystem
@@ -44,6 +52,9 @@ struct CameraScreen: View {
             }
             camera.onError = { message in
                 alertMessage = message
+            }
+            camera.onFrontCameraUnavailable = {
+                viewModel.useDefaultAvatarImage()
             }
             await camera.prepare()
         }
@@ -245,6 +256,14 @@ private struct SelfieCameraPreviewCard: View {
                 Text(AppStrings.cameraSuccess)
                     .font(AppFont.telka(15, weight: .medium))
                     .foregroundStyle(.white)
+                    .multilineTextAlignment(.center)
+
+                if let statusMessage = viewModel.statusMessage {
+                    Text(statusMessage)
+                        .font(AppFont.telka(13))
+                        .foregroundStyle(Color.white.opacity(0.82))
+                        .multilineTextAlignment(.center)
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
@@ -304,6 +323,7 @@ private final class SelfieCameraController: NSObject, ObservableObject, @uncheck
 
     var onCapture: ((UIImage) -> Void)?
     var onError: ((CameraAlertMessage) -> Void)?
+    var onFrontCameraUnavailable: (() -> Void)?
 
     private let sessionQueue = DispatchQueue(label: "com.openclaw.pika.selfie-camera")
     private let photoOutput = AVCapturePhotoOutput()
@@ -434,14 +454,7 @@ private final class SelfieCameraController: NSObject, ObservableObject, @uncheck
         else {
             DispatchQueue.main.async { [weak self] in
                 self?.placeholderText = String(localized: "prototype.camera.unavailable")
-                self?.onError?(
-                    CameraAlertMessage(
-                        title: String(localized: "prototype.camera.unavailable"),
-                        body: String(localized: "prototype.camera.unavailable_body"),
-                        actionTitle: nil,
-                        opensSettings: false
-                    )
-                )
+                self?.onFrontCameraUnavailable?()
             }
             return false
         }

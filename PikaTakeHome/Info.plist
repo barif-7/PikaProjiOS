@@ -27,6 +27,27 @@
         <key>NSAllowsArbitraryLoads</key>
         <true/>
     </dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>com.openclaw.pikatakehome.auth</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>pikatakehome</string>
+            </array>
+        </dict>
+    </array>
+    <key>AuthBaseURL</key>
+	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
+    <key>AuthRedirectScheme</key>
+    <string>pikatakehome</string>
+    <key>VoiceChatBaseURL</key>
+	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
+    <key>VoiceTrainingBaseURL</key>
+	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIAppFonts</key>

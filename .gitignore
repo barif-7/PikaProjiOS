@@ -2,6 +2,5 @@
 build/
 DerivedData/
 .deriveddata/
-.figma-assets/
 xcuserdata/
 *.xcuserstate

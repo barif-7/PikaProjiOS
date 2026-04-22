@@ -1,16 +1,27 @@
+//
+//  WelcomeScreen.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 import UIKit
 
+/// Entry screen that handles phone sign-in, Google sign-in, and onboarding media.
 struct WelcomeScreen: View {
     @ObservedObject var viewModel: PrototypeWelcomeViewModel
+    
     @Environment(\.scenePhase) private var scenePhase
     @State private var hasStartedOnboardingAudio = false
 
-    private let headingColor = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255)
-    private let subtitleColor = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255).opacity(0.6)
-    private let termsColor = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255).opacity(0.5)
-    private let continueFill = Color(red: 207 / 255, green: 195 / 255, blue: 1.0)
-    private let continueText = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
+    @Environment(\.designSystem) private var ds: PikaDesignSystem
+    
+    private var headingColor: Color { ds.colors.textPrimary }
+    private var subtitleColor: Color { ds.colors.textSecondary }
+    private var termsColor: Color { ds.colors.textSecondary.opacity(0.5) }
+    private var continueFill: Color { ds.colors.accentSecondary }
+    private var continueText: Color { ds.colors.textPrimary }
 
     var body: some View {
         ZStack {
@@ -19,7 +30,6 @@ struct WelcomeScreen: View {
                 hasStartedOnboardingAudio = true
                 BackgroundAudioStore.shared.play(.onboardingBackgroundAudio)
             }
-                .ignoresSafeArea()
                 .ignoresSafeArea(.keyboard)
 
             GeometryReader { proxy in
@@ -46,7 +56,7 @@ struct WelcomeScreen: View {
 
                         PrimaryButton(
                             title: AppStrings.welcomeContinue,
-                            enabled: viewModel.canContinue,
+                            enabled: viewModel.canContinue && !viewModel.isAuthenticating,
                             textColor: continueText,
                             backgroundColor: continueFill
                         ) {
@@ -57,8 +67,15 @@ struct WelcomeScreen: View {
                         DividerRow()
 
                         HStack(spacing: 16) {
-                            CircleIconButton(asset: .googleIcon, fallbackSystemName: "g.circle.fill")
+                            CircleIconButton(asset: .googleIcon, fallbackSystemName: "g.circle.fill") {
+                                viewModel.googleTapped()
+                            }
+                            .disabled(viewModel.isAuthenticating)
+                            .opacity(viewModel.isAuthenticating ? 0.55 : 1)
+
                             CircleIconButton(asset: .mailIcon, fallbackSystemName: "envelope.fill")
+                                .disabled(viewModel.isAuthenticating)
+                                .opacity(viewModel.isAuthenticating ? 0.55 : 1)
                         }
 
                         (
@@ -70,6 +87,17 @@ struct WelcomeScreen: View {
                         )
                             .foregroundStyle(termsColor)
                             .padding(.top, 2)
+
+                        if viewModel.isAuthenticating {
+                            ProgressView()
+                                .padding(.top, 6)
+                        } else if let authErrorMessage = viewModel.authErrorMessage {
+                            Text(authErrorMessage)
+                                .font(AppFont.telka(12))
+                                .foregroundStyle(Color.red.opacity(0.75))
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 6)
+                        }
                     }
                     .padding(.horizontal, AppSpacing.screenHorizontal)
                     .padding(.bottom, max(proxy.safeAreaInsets.bottom, 22))
@@ -80,6 +108,8 @@ struct WelcomeScreen: View {
         .ignoresSafeArea(edges: .top)
         .contentShape(Rectangle())
         .onAppear {
+            BitmapImageStore.shared.prewarm(.voiceBackground)
+            BitmapImageStore.shared.prewarm(.semiPortrait)
             LoopingVideoStore.shared.prewarm(.onboardingHeroProxy)
             VideoThumbnailStore.shared.prewarm(.onboardingHeroProxy)
             BackgroundAudioStore.shared.prewarm(.onboardingBackgroundAudio)
@@ -106,6 +136,13 @@ struct WelcomeScreen: View {
     }
 
     private func dismissKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        UIApplication.shared.sendAction(
+            #selector(
+                UIResponder.resignFirstResponder
+            ),
+            to: nil,
+            from: nil,
+            for: nil
+        )
     }
 }

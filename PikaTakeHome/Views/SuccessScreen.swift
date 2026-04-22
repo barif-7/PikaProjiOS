@@ -1,5 +1,13 @@
+//
+//  SuccessScreen.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
+/// Completion screen that presents the generated AI-self card and next actions.
 struct SuccessScreen: View {
     @ObservedObject var viewModel: PrototypeSuccessViewModel
     @Environment(\.designSystem) private var designSystem

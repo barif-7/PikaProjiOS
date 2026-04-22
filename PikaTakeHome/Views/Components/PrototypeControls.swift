@@ -1,5 +1,13 @@
+//
+//  PrototypeControls.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
+/// Shared leading navigation button row.
 struct PrototypeTopBar: View {
     let foregroundStyle: Color
     let buttonBackground: Color
@@ -28,6 +36,7 @@ struct PrototypeTopBar: View {
     }
 }
 
+/// Phone-number entry field styled to match the onboarding design.
 struct PhoneField: View {
     @Binding var text: String
 
@@ -77,6 +86,7 @@ struct PhoneField: View {
     }
 }
 
+/// App-specific primary CTA wrapper with optional imported trailing icon.
 struct PrimaryButton: View {
     let title: LocalizedStringResource
     let enabled: Bool
@@ -110,6 +120,7 @@ struct PrimaryButton: View {
     }
 }
 
+/// App-specific secondary CTA wrapper with optional imported trailing icon.
 struct SecondaryButton: View {
     let title: LocalizedStringResource
     var trailingAsset: ImportedAsset? = nil
@@ -129,6 +140,7 @@ struct SecondaryButton: View {
     }
 }
 
+/// "Or continue with" separator between phone and social sign-in options.
 struct DividerRow: View {
     var body: some View {
         HStack(spacing: AppSpacing.xs + 2) {
@@ -155,18 +167,21 @@ struct DividerRow: View {
     }
 }
 
+/// Circular icon button that prefers imported SVG assets and falls back to SF Symbols.
 struct CircleIconButton: View {
     let asset: ImportedAsset
     let fallbackSystemName: String
+    var action: () -> Void = {}
 
     var body: some View {
-        Button(action: {}) {
+        Button(action: action) {
             importedIcon(asset, size: 24, fallback: fallbackSystemName)
         }
         .buttonStyle(PikaGlassCircleButtonStyle(diameter: AppControlSize.iconButton))
     }
 }
 
+/// Camera shutter row with gallery, capture, and flip actions.
 struct CaptureControls: View {
     let onGallery: () -> Void
     let onShutter: () -> Void
@@ -198,6 +213,7 @@ struct CaptureControls: View {
     }
 }
 
+/// Circular camera utility control.
 struct CircleControl: View {
     let systemName: String
     let action: () -> Void
@@ -215,6 +231,7 @@ struct CircleControl: View {
     }
 }
 
+/// Legacy quote card retained as a reusable fallback for voice copy.
 struct QuoteCard: View {
     let text: LocalizedStringResource
 
@@ -235,6 +252,7 @@ struct QuoteCard: View {
     }
 }
 
+/// Circular voice recording control used by the prompt and recording states.
 struct VoiceButton: View {
     enum Style {
         case mic
@@ -279,6 +297,7 @@ struct VoiceButton: View {
     }
 }
 
+/// Controls shown after a voice recording has been captured.
 struct VoiceCompleteControls: View {
     let onRestart: () -> Void
     let onConfirm: () -> Void

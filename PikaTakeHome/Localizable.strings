@@ -3,6 +3,8 @@
 "prototype.welcome.continue" = "Continue";
 "prototype.welcome.terms" = "Sign in to agree to terms";
 "prototype.welcome.phone_placeholder" = "Phone number";
+"prototype.welcome.google_auth_failed" = "Google sign-in failed. Check the backend OAuth setup and try again.";
+"prototype.welcome.google_unavailable" = "Google sign-in is not configured yet on the backend.";
 "prototype.shared.continue_with" = "Or continue with";
 "prototype.camera.loading" = "Creating avatar…";
 "prototype.camera.success" = "Avatar ready";
@@ -27,6 +29,7 @@
 "prototype.camera.permission_action" = "Open Settings";
 "prototype.camera.unavailable" = "Front camera unavailable";
 "prototype.camera.unavailable_body" = "This device does not have a front-facing camera available right now.";
+"prototype.camera.front_camera_placeholder" = "Front camera is disabled. Switching to placeholder avatar.";
 "prototype.camera.capture_failed" = "Couldn’t capture selfie";
 "prototype.camera.capture_failed_body" = "Try again with your face centered in frame and good lighting.";
 
@@ -45,6 +48,7 @@
 "prototype.voice.training" = "Training your voice profile...";
 "prototype.voice.training_failed_title" = "Voice training failed";
 "prototype.voice.training_failed_body" = "We couldn’t finish building your voice profile right now. Try again.";
+"prototype.voice.backend_configuration_body" = "Set `VoiceTrainingBaseURL` or `VOICE_TRAINING_BASE_URL` to a backend the app can reach. The current voice-training endpoint is rejecting direct app requests before the API runs.";
 
 "prototype.success.title" = "MEET SEMI";
 "prototype.success.subtitle" = "Your AI Self is ready to chat";
@@ -71,6 +75,26 @@
 "prototype.messages.backend_failed_title" = "Voice chat unavailable";
 "prototype.messages.backend_failed_body" = "We couldn’t get a response from your AI Self right now. Try again once the open-source voice backend is running.";
 "prototype.messages.backend_not_configured_body" = "Set `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL` so the app can reach your self-hosted Whisper, Mistral, and Kokoro stack.";
+"prototype.provider.title" = "MODEL PROVIDER";
+"prototype.provider.subtitle" = "Connect your own Ollama-compatible endpoint for future chat routing.";
+"prototype.provider.account" = "Account";
+"prototype.provider.signed_in_as" = "Signed in as";
+"prototype.provider.signed_out" = "Sign in with Google first to sync provider settings to your account.";
+"prototype.provider.endpoint" = "Endpoint URL";
+"prototype.provider.model" = "Model";
+"prototype.provider.token" = "API token";
+"prototype.provider.label" = "Label";
+"prototype.provider.save" = "Save Provider";
+"prototype.provider.saved" = "Provider settings saved.";
+"prototype.provider.sign_out" = "Sign Out";
+"prototype.provider.signed_out_status" = "Signed out. Provider settings now fall back to the shared backend defaults.";
+"prototype.provider.load_failed_title" = "Couldn’t load provider settings";
+"prototype.provider.load_failed_body" = "Try again after the backend is running and you’re signed in.";
+"prototype.provider.save_failed_title" = "Couldn’t save provider settings";
+"prototype.provider.save_failed_body" = "Check your connection details and try again.";
+"prototype.provider.sign_out_failed_title" = "Couldn’t sign out";
+"prototype.provider.sign_out_failed_body" = "Try again after the backend is running.";
+"prototype.provider.open" = "Provider Settings";
 
 "prototype.identity.born_on_pika" = "BORN ON PIKA";
 "prototype.identity.birth_date" = "FEB 11, 2026";

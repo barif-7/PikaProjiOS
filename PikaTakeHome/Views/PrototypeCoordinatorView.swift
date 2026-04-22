@@ -1,5 +1,13 @@
+//
+//  PrototypeCoordinatorView.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
+/// Route renderer for the coordinator-managed prototype flow.
 struct PrototypeCoordinatorView: View {
     @ObservedObject var coordinator: PrototypeCoordinator
 
@@ -33,6 +41,8 @@ struct PrototypeCoordinatorView: View {
             SuccessScreen(viewModel: coordinator.successViewModel)
         case .messages:
             MessagesScreen(viewModel: coordinator.messagesViewModel)
+        case .providerSettings:
+            ProviderSettingsScreen(viewModel: coordinator.providerSettingsViewModel)
         }
     }
 }

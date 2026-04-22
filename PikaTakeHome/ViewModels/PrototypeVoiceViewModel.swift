@@ -1,19 +1,41 @@
+//
+//  PrototypeVoiceViewModel.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 @preconcurrency import AVFAudio
 import Foundation
 import SwiftUI
 import UIKit
 
+/// File-backed recording captured during voice onboarding.
 struct VoiceRecordedSample {
     let fileURL: URL
     let duration: TimeInterval
 }
 
+/// Payload submitted to the backend voice-training endpoint.
 struct VoiceTrainingSample {
     let fileURL: URL
     let transcript: String
     let duration: TimeInterval
+    let baseProfileID: String?
+
+    var mimeType: String {
+        switch fileURL.pathExtension.lowercased() {
+        case "wav":
+            return "audio/wav"
+        case "caf":
+            return "audio/x-caf"
+        default:
+            return "application/octet-stream"
+        }
+    }
 }
 
+/// Backend voice-training job state.
 enum VoiceTrainingJobStatus: Equatable {
     case queued
     case processing(progress: Double?)
@@ -21,6 +43,7 @@ enum VoiceTrainingJobStatus: Equatable {
     case failed(message: String)
 }
 
+/// User-facing recording failures.
 enum VoiceRecordingError: LocalizedError {
     case permissionDenied
     case failedToStart
@@ -41,6 +64,7 @@ enum VoiceRecordingError: LocalizedError {
     }
 }
 
+/// Recorder abstraction used by the voice view model.
 protocol VoiceSampleRecording {
     func start() async throws
     func stop() async throws -> VoiceRecordedSample
@@ -48,12 +72,14 @@ protocol VoiceSampleRecording {
     var currentTime: TimeInterval { get async }
 }
 
+/// Backend abstraction for voice-profile training.
 protocol VoiceProfileTraining {
     func capabilities() async throws -> VoiceTrainingCapabilities
     func submit(sample: VoiceTrainingSample) async throws -> String
     func status(for jobID: String) async throws -> VoiceTrainingJobStatus
 }
 
+/// Capability response describing whether personalized voice training is available.
 struct VoiceTrainingCapabilities: Equatable {
     let trainingCommandConfigured: Bool
     let trainingMode: String
@@ -61,6 +87,7 @@ struct VoiceTrainingCapabilities: Equatable {
     let message: String?
 }
 
+/// Resolves the voice-training backend URL from environment, simulator defaults, or Info.plist.
 struct VoiceTrainingAPIConfiguration {
     let baseURL: URL
     private static let simulatorDefaultBaseURL = URL(string: "http://127.0.0.1:8080")!
@@ -74,17 +101,17 @@ struct VoiceTrainingAPIConfiguration {
             return VoiceTrainingAPIConfiguration(baseURL: url)
         }
 
-        #if targetEnvironment(simulator)
-        return VoiceTrainingAPIConfiguration(baseURL: simulatorDefaultBaseURL)
-        #else
         let plistValue = (bundle.object(forInfoDictionaryKey: "VoiceTrainingBaseURL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let plistValue, !plistValue.isEmpty, let url = URL(string: plistValue) {
             return VoiceTrainingAPIConfiguration(baseURL: url)
         }
-        #endif
 
+        #if targetEnvironment(simulator)
+        return VoiceTrainingAPIConfiguration(baseURL: simulatorDefaultBaseURL)
+        #else
         return nil
+        #endif
     }
 
     var submitURL: URL {
@@ -115,19 +142,28 @@ enum VoiceTrainingServiceError: LocalizedError {
     }
 }
 
+private struct VoiceTrainingBackendErrorResponse: Decodable {
+    let message: String?
+    let error: String?
+    let detail: String?
+}
+
 private struct VoiceTrainingSubmitRequest: Encodable {
     let transcript: String
     let durationSeconds: TimeInterval
     let fileName: String
     let mimeType: String
     let audioBase64: String
+    let baseProfileID: String?
 }
 
 private struct VoiceTrainingSubmitResponse: Decodable {
     let jobID: String
+    let profileID: String?
 
     enum CodingKeys: String, CodingKey {
         case jobID = "jobId"
+        case profileID = "profileId"
     }
 }
 
@@ -152,22 +188,38 @@ private struct VoiceTrainingCapabilitiesResponse: Decodable {
     let message: String?
 }
 
+/// HTTP implementation for voice-profile training.
 actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
     private let configuration: VoiceTrainingAPIConfiguration
+    private let sessionToken: String?
     private let session: URLSession
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
-    init(configuration: VoiceTrainingAPIConfiguration, session: URLSession = .shared) {
+    init(
+        configuration: VoiceTrainingAPIConfiguration,
+        sessionToken: String? = nil,
+        session: URLSession = .shared
+    ) {
         self.configuration = configuration
+        self.sessionToken = sessionToken?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfBlank
         self.session = session
     }
 
     func capabilities() async throws -> VoiceTrainingCapabilities {
-        let (data, response) = try await session.data(from: configuration.capabilitiesURL)
-        try validate(response: response, data: data)
+        var request = URLRequest(url: configuration.capabilitiesURL)
+        if let sessionToken {
+            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        }
 
-        let decoded = try decoder.decode(VoiceTrainingCapabilitiesResponse.self, from: data)
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        let decoded: VoiceTrainingCapabilitiesResponse
+        do {
+            decoded = try decoder.decode(VoiceTrainingCapabilitiesResponse.self, from: data)
+        } catch is DecodingError {
+            throw VoiceTrainingServiceError.backend(message: backendMessage(from: data))
+        }
         return VoiceTrainingCapabilities(
             trainingCommandConfigured: decoded.trainingCommandConfigured,
             trainingMode: decoded.trainingMode,
@@ -182,19 +234,27 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
             transcript: sample.transcript,
             durationSeconds: sample.duration,
             fileName: sample.fileURL.lastPathComponent,
-            mimeType: "audio/m4a",
-            audioBase64: audioData.base64EncodedString()
+            mimeType: sample.mimeType,
+            audioBase64: audioData.base64EncodedString(),
+            baseProfileID: sample.baseProfileID?.nilIfBlank
         )
 
         var request = URLRequest(url: configuration.submitURL)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let sessionToken {
+            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        }
         request.httpBody = try encoder.encode(body)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
-
-        let decoded = try decoder.decode(VoiceTrainingSubmitResponse.self, from: data)
+        let decoded: VoiceTrainingSubmitResponse
+        do {
+            decoded = try decoder.decode(VoiceTrainingSubmitResponse.self, from: data)
+        } catch is DecodingError {
+            throw VoiceTrainingServiceError.backend(message: backendMessage(from: data))
+        }
         guard !decoded.jobID.isEmpty else {
             throw VoiceTrainingServiceError.invalidResponse
         }
@@ -203,10 +263,19 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
     }
 
     func status(for jobID: String) async throws -> VoiceTrainingJobStatus {
-        let (data, response) = try await session.data(from: configuration.statusURL(for: jobID))
-        try validate(response: response, data: data)
+        var request = URLRequest(url: configuration.statusURL(for: jobID))
+        if let sessionToken {
+            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        }
 
-        let decoded = try decoder.decode(VoiceTrainingStatusResponse.self, from: data)
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+        let decoded: VoiceTrainingStatusResponse
+        do {
+            decoded = try decoder.decode(VoiceTrainingStatusResponse.self, from: data)
+        } catch is DecodingError {
+            throw VoiceTrainingServiceError.backend(message: backendMessage(from: data))
+        }
         switch decoded.status.lowercased() {
         case "queued":
             return .queued
@@ -230,24 +299,64 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            let backendMessage = (try? decoder.decode(VoiceTrainingStatusResponse.self, from: data))?.message
             throw VoiceTrainingServiceError.backend(
-                message: backendMessage ?? String(localized: AppStrings.voiceTrainingFailedBody)
+                message: backendMessage(from: data)
             )
         }
     }
+
+    private func backendMessage(from data: Data) -> String {
+        if let decoded = try? decoder.decode(VoiceTrainingBackendErrorResponse.self, from: data) {
+            let message = decoded.message?.nilIfBlank ?? decoded.error?.nilIfBlank ?? decoded.detail?.nilIfBlank
+            if let message {
+                return userFacingBackendMessage(message)
+            }
+        }
+
+        if
+            let rawMessage = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !rawMessage.isEmpty
+        {
+            return userFacingBackendMessage(rawMessage)
+        }
+
+        return String(localized: AppStrings.voiceTrainingFailedBody)
+    }
+
+    private func userFacingBackendMessage(_ message: String) -> String {
+        if message.localizedCaseInsensitiveContains("Invalid IAP credentials") {
+            return String(localized: AppStrings.voiceTrainingBackendConfigurationBody)
+        }
+        return message
+    }
 }
 
+/// Selects the production or mock training service for the current environment.
 enum VoiceTrainingServiceFactory {
-    static func makeDefault() -> VoiceProfileTraining {
+    @MainActor
+    static func makeDefault(
+        appSessionStore: PrototypeAppSessionStore? = nil
+    ) -> VoiceProfileTraining {
+        let sessionToken = (appSessionStore ?? .shared).state.session?.sessionToken
         if let configuration = VoiceTrainingAPIConfiguration.load() {
-            return HTTPVoiceProfileTrainingService(configuration: configuration)
+            return HTTPVoiceProfileTrainingService(
+                configuration: configuration,
+                sessionToken: sessionToken
+            )
         }
 
         return MockVoiceProfileTrainingService()
     }
 }
 
+private extension String {
+    var nilIfBlank: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}
+
+/// Local fallback used when a backend training service is unavailable.
 actor MockVoiceProfileTrainingService: VoiceProfileTraining {
     private var jobs: [String: Date] = [:]
 
@@ -286,6 +395,7 @@ actor MockVoiceProfileTrainingService: VoiceProfileTraining {
     }
 }
 
+/// `AVAudioRecorder` backed implementation for the onboarding voice sample.
 final class AVAudioVoiceSampleRecorder: NSObject, VoiceSampleRecording, @unchecked Sendable {
     private var recorder: AVAudioRecorder?
 
@@ -318,13 +428,15 @@ final class AVAudioVoiceSampleRecorder: NSObject, VoiceSampleRecording, @uncheck
 
         let fileURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("pika-voice-\(UUID().uuidString)")
-            .appendingPathExtension("m4a")
+            .appendingPathExtension("wav")
 
         let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVFormatIDKey: kAudioFormatLinearPCM,
             AVSampleRateKey: 44_100,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsFloatKey: false,
         ]
 
         let recorder = try AVAudioRecorder(url: fileURL, settings: settings)
@@ -365,6 +477,7 @@ final class AVAudioVoiceSampleRecorder: NSObject, VoiceSampleRecording, @uncheck
 }
 
 @MainActor
+/// View model for recording, uploading, and tracking voice-training progress.
 final class PrototypeVoiceViewModel: ObservableObject {
     @Published var stage: PrototypeVoiceStage = .prompt
     @Published private(set) var avatarImage: UIImage?
@@ -386,15 +499,18 @@ final class PrototypeVoiceViewModel: ObservableObject {
 
     private let recorder: VoiceSampleRecording
     private let trainer: VoiceProfileTraining
+    private let featureFlags: FeatureFlagManaging
     private var recordedSample: VoiceRecordedSample?
     private var recordingTask: Task<Void, Never>?
 
     init(
         recorder: VoiceSampleRecording = AVAudioVoiceSampleRecorder(),
-        trainer: VoiceProfileTraining = VoiceTrainingServiceFactory.makeDefault()
+        trainer: VoiceProfileTraining? = nil,
+        featureFlags: FeatureFlagManaging = FeatureFlagManager.shared
     ) {
         self.recorder = recorder
-        self.trainer = trainer
+        self.trainer = trainer ?? VoiceTrainingServiceFactory.makeDefault()
+        self.featureFlags = featureFlags
     }
 
     func backTapped() {
@@ -508,6 +624,13 @@ final class PrototypeVoiceViewModel: ObservableObject {
             return
         }
 
+        guard featureFlags.isEnabled(.enableVoiceTraining) else {
+            trainedVoiceProfileID = nil
+            statusMessage = nil
+            onConfirmRequested?()
+            return
+        }
+
         isTraining = true
         alert = nil
         statusMessage = String(localized: AppStrings.voiceUploading)
@@ -524,7 +647,8 @@ final class PrototypeVoiceViewModel: ObservableObject {
                 sample: VoiceTrainingSample(
                     fileURL: recordedSample.fileURL,
                     transcript: String(localized: quote),
-                    duration: recordedSample.duration
+                    duration: recordedSample.duration,
+                    baseProfileID: trainedVoiceProfileID
                 )
             )
 

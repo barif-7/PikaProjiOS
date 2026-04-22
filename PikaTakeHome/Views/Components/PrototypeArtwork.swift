@@ -1,8 +1,16 @@
+//
+//  PrototypeArtwork.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import AVFoundation
 import AVKit
 import SwiftUI
 import WebKit
 
+/// Bundle resource names imported from the Figma export.
 enum ImportedAsset: String {
     case onboardingHero = "AppHeroVideo-720x1280-optimized.mp4"
     case onboardingHeroProxy = "AppHeroVideo-540x960-proxy.mp4"
@@ -49,12 +57,13 @@ enum ImportedAsset: String {
     }
 }
 
+/// Renders an imported bitmap from the bundled `ImportedAssets` folder.
 struct ImportedBitmapImage: View {
     let asset: ImportedAsset
     let contentMode: ContentMode
 
     var body: some View {
-        if let bundlePath = asset.bundlePath, let uiImage = UIImage(contentsOfFile: bundlePath) {
+        if let uiImage = BitmapImageStore.shared.image(for: asset) {
             Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: contentMode)
@@ -62,6 +71,31 @@ struct ImportedBitmapImage: View {
     }
 }
 
+final class BitmapImageStore {
+    static let shared = BitmapImageStore()
+
+    private let cache = NSCache<NSString, UIImage>()
+
+    private init() {}
+
+    func prewarm(_ asset: ImportedAsset) {
+        _ = image(for: asset)
+    }
+
+    func image(for asset: ImportedAsset) -> UIImage? {
+        guard let bundlePath = asset.bundlePath else { return nil }
+
+        if let cached = cache.object(forKey: bundlePath as NSString) {
+            return cached
+        }
+
+        guard let uiImage = UIImage(contentsOfFile: bundlePath) else { return nil }
+        cache.setObject(uiImage, forKey: bundlePath as NSString)
+        return uiImage
+    }
+}
+
+/// Shared ambient-audio player with simple fade in/out support.
 final class BackgroundAudioStore {
     static let shared = BackgroundAudioStore()
 
@@ -155,6 +189,7 @@ final class BackgroundAudioStore {
     }
 }
 
+/// SwiftUI wrapper around a muted looping `AVQueuePlayer`.
 struct ImportedLoopingVideoView: UIViewRepresentable {
     let asset: ImportedAsset
     var onReadyForDisplay: (() -> Void)? = nil
@@ -172,6 +207,7 @@ struct ImportedLoopingVideoView: UIViewRepresentable {
     }
 }
 
+/// Cached player and looper pair for a single bundled video asset.
 final class LoopingVideoPlayback {
     let assetPath: String
     let player: AVQueuePlayer
@@ -193,6 +229,7 @@ final class LoopingVideoPlayback {
     }
 }
 
+/// Generates and caches first-frame thumbnails for video loading placeholders.
 final class VideoThumbnailStore {
     static let shared = VideoThumbnailStore()
 
@@ -256,6 +293,7 @@ final class VideoThumbnailStore {
     }
 }
 
+/// Keeps looping video players alive across SwiftUI view updates.
 final class LoopingVideoStore {
     static let shared = LoopingVideoStore()
 
@@ -280,6 +318,7 @@ final class LoopingVideoStore {
     }
 }
 
+/// UIKit host view that crossfades from a thumbnail to a ready video layer.
 final class PlayerContainerView: UIView {
     private let playerLayer = AVPlayerLayer()
     private let previewImageView = UIImageView()
@@ -343,6 +382,7 @@ final class PlayerContainerView: UIView {
     }
 }
 
+/// Two-stage onboarding video background that starts with a proxy and promotes quality.
 struct OnboardingHeroBackground: View {
     @State private var canPromoteToHighQuality = false
     @State private var highQualityReady = false
@@ -374,6 +414,7 @@ struct OnboardingHeroBackground: View {
     }
 }
 
+/// Displays bundled SVG markup through a transparent `WKWebView`.
 struct ImportedSVGView: UIViewRepresentable {
     let asset: ImportedAsset
 
@@ -431,6 +472,7 @@ struct ImportedSVGView: UIViewRepresentable {
     }
 }
 
+/// Full-screen onboarding hero. Uses imported video when available and a SwiftUI fallback otherwise.
 struct HeroFace: View {
     var onPrimaryPlaybackStarted: (() -> Void)? = nil
 
@@ -534,6 +576,7 @@ struct HeroFace: View {
     }
 }
 
+/// Camera preview placeholder used when the real camera feed is not part of the prototype.
 struct CameraPreviewCard: View {
     var body: some View {
         ZStack {
@@ -564,6 +607,7 @@ struct CameraPreviewCard: View {
     }
 }
 
+/// Shape-based fallback portrait for the camera preview.
 struct PortraitSilhouette: View {
     var body: some View {
         ZStack {
@@ -626,6 +670,7 @@ struct PortraitSilhouette: View {
     }
 }
 
+/// Rendered AI-self identity card shown on the success screen.
 struct IdentityCardView: View {
     let card: PrototypeIdentityCard
 

@@ -1,7 +1,15 @@
+//
+//  SelfieAvatarPipeline.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import Foundation
 import UIKit
 @preconcurrency import Vision
 
+/// Errors that can occur while preparing a selfie for Image Playground.
 enum SelfieAvatarError: LocalizedError, Equatable {
     case notSupported
     case noFaceDetected
@@ -22,12 +30,14 @@ enum SelfieAvatarError: LocalizedError, Equatable {
     }
 }
 
+/// Output produced after a selfie has been normalized, cropped, and written to disk.
 struct PreparedSelfieAvatarInput {
     let sourceImage: UIImage
     let sourceImageURL: URL
     let croppedFace: UIImage
 }
 
+/// Chooses the most useful Vision face observation from a detection pass.
 struct FaceSelection {
     static func largestFace(from observations: [VNFaceObservation]) -> VNFaceObservation? {
         observations.max { lhs, rhs in
@@ -36,6 +46,7 @@ struct FaceSelection {
     }
 }
 
+/// Converts Vision face bounds into UIKit image crop rectangles.
 struct FaceCropper {
     static func cropRect(
         for boundingBox: CGRect,
@@ -91,10 +102,12 @@ struct FaceCropper {
     }
 }
 
+/// Abstraction around selfie preparation so camera view models can be tested independently.
 protocol SelfieAvatarPreparing {
     func prepareSelfie(from selfie: UIImage) async throws -> PreparedSelfieAvatarInput
 }
 
+/// Production selfie preparation pipeline backed by Vision face detection.
 struct SelfieAvatarService: SelfieAvatarPreparing {
     func prepareSelfie(from selfie: UIImage) async throws -> PreparedSelfieAvatarInput {
         let normalizedImage = try selfie.normalizedImage()

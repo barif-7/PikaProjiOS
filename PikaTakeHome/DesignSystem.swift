@@ -1,7 +1,17 @@
+//
+//  PikaDesignSystem.swift
+//  PikaTakeHome
+//
+//  Updated to use the PikaDesignSystem name.
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
 // MARK: - Static Style Types
 
+/// Legacy font accessors kept for views that have not moved to `PikaDesignSystem`.
 enum AppFont {
     static func telka(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         switch weight {
@@ -59,6 +69,7 @@ enum AppFont {
     }
 }
 
+/// Legacy spacing tokens.
 enum AppSpacing {
     static let xxxs: CGFloat = 4
     static let xxs: CGFloat = 6
@@ -82,6 +93,7 @@ enum AppSpacing {
     static let successSectionGap: CGFloat = 24
 }
 
+/// Legacy corner‑radius tokens.
 enum AppRadius {
     static let xs: CGFloat = 10
     static let sm: CGFloat = 16
@@ -92,6 +104,7 @@ enum AppRadius {
     static let pill: CGFloat = 999
 }
 
+/// Shared control sizing tokens.
 enum AppControlSize {
     static let topButton: CGFloat = 48
     static let closeButton: CGFloat = 44
@@ -111,19 +124,20 @@ enum AppShadow {
     static let softY: CGFloat = 8
 }
 
+/// Legacy color palette and semantic aliases.
 enum AppColor {
     // Raw palette from Figma MCP
-    static let creamBase = Color(red: 253 / 255, green: 247 / 255, blue: 239 / 255)
-    static let creamSurface = Color(red: 252 / 255, green: 250 / 255, blue: 247 / 255)
-    static let inkPrimary = Color(red: 13 / 255, green: 13 / 255, blue: 13 / 255)
-    static let inkSecondary = Color(red: 34 / 255, green: 34 / 255, blue: 34 / 255)
+    static let creamBase = Color(red: 253/255, green: 247/255, blue: 239/255)
+    static let creamSurface = Color(red: 252/255, green: 250/255, blue: 247/255)
+    static let inkPrimary = Color(red: 13/255, green: 13/255, blue: 13/255)
+    static let inkSecondary = Color(red: 34/255, green: 34/255, blue: 34/255)
     static let lineDark = inkPrimary.opacity(0.25)
     static let washDark = inkPrimary.opacity(0.05)
     static let glassLight = Color.white.opacity(0.10)
-    static let lavenderPrimary = Color(red: 207 / 255, green: 195 / 255, blue: 1.0)
-    static let lavenderQuote = Color(red: 128 / 255, green: 110 / 255, blue: 202 / 255)
-    static let successStroke = Color(red: 19 / 255, green: 17 / 255, blue: 14 / 255).opacity(0.12)
-    static let successCardBottom = Color(red: 247 / 255, green: 244 / 255, blue: 235 / 255).opacity(0.5)
+    static let lavenderPrimary = Color(red: 207/255, green: 195/255, blue: 1.0)
+    static let lavenderQuote = Color(red: 128/255, green: 110/255, blue: 202/255)
+    static let successStroke = Color(red: 19/255, green: 17/255, blue: 14/255).opacity(0.12)
+    static let successCardBottom = Color(red: 247/255, green: 244/255, blue: 235/255).opacity(0.5)
 
     // Semantic roles
     static let screenBackground = creamBase
@@ -154,16 +168,16 @@ enum AppColor {
     static let shadow = AppShadow.softColor
 }
 
-// MARK: - DesignSystem Struct & EnvironmentKey
+// MARK: - PikaDesignSystem Struct & EnvironmentKey
 
-struct DesignSystem {
+struct PikaDesignSystem {
     let colors: AppColor.Type
     let fonts: AppFont.Type
     let spacing: AppSpacing.Type
     let radius: AppRadius.Type
     let controlSize: AppControlSize.Type
 
-    static let `default` = DesignSystem(
+    static let `default` = PikaDesignSystem(
         colors: AppColor.self,
         fonts: AppFont.self,
         spacing: AppSpacing.self,
@@ -172,16 +186,20 @@ struct DesignSystem {
     )
 }
 
-private struct DesignSystemKey: EnvironmentKey {
-    static let defaultValue: DesignSystem = .default
+private struct PikaDesignSystemKey: EnvironmentKey {
+    static let defaultValue: PikaDesignSystem = .default
 }
 
 extension EnvironmentValues {
-    var designSystem: DesignSystem {
-        get { self[DesignSystemKey.self] }
-        set { self[DesignSystemKey.self] = newValue }
+    var designSystem: PikaDesignSystem {
+        get { self[PikaDesignSystemKey.self] }
+        set { self[PikaDesignSystemKey.self] = newValue }
     }
 }
+
+// MARK: - Compatibility Alias
+// Keep the old name around so existing code continues to compile.
+typealias DesignSystem = PikaDesignSystem
 
 // MARK: - ViewModifiers (optional)
 
@@ -206,17 +224,13 @@ struct CardSurfaceModifier: ViewModifier {
 }
 
 extension View {
-    func softShadow() -> some View {
-        modifier(SoftShadow())
-    }
-
-    func cardSurface() -> some View {
-        modifier(CardSurfaceModifier())
-    }
+    func softShadow() -> some View { modifier(SoftShadow()) }
+    func cardSurface() -> some View { modifier(CardSurfaceModifier()) }
 }
 
 // MARK: - Button Styles
 
+/// Rounded primary button style used by the prototype onboarding flow.
 struct PikaRoundedPrimaryButtonStyle: ButtonStyle {
     let isEnabled: Bool
     let textColor: Color?
@@ -241,6 +255,7 @@ struct PikaRoundedPrimaryButtonStyle: ButtonStyle {
     }
 }
 
+/// Rounded secondary button style used by the prototype onboarding flow.
 struct PikaRoundedSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -260,6 +275,7 @@ struct PikaRoundedSecondaryButtonStyle: ButtonStyle {
     }
 }
 
+/// Circular translucent button style for icon controls.
 struct PikaGlassCircleButtonStyle: ButtonStyle {
     let diameter: CGFloat
 

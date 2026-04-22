@@ -1,5 +1,13 @@
+//
+//  MessagesScreen.swift
+//  PikaTakeHome
+//
+//  Created by Basil Arif on 4/20/26.
+//
+
 import SwiftUI
 
+/// Voice-first chat screen for talking with the generated AI self.
 struct MessagesScreen: View {
     @ObservedObject var viewModel: PrototypeMessagesViewModel
     @Environment(\.designSystem) private var designSystem
@@ -17,6 +25,26 @@ struct MessagesScreen: View {
                 }
                 .padding(.horizontal, designSystem.spacing.xl)
                 .padding(.top, 20)
+                .overlay(alignment: .topTrailing) {
+                    if viewModel.showsProviderSettingsButton {
+                        Button {
+                            viewModel.openProviderSettingsTapped()
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundStyle(designSystem.colors.textPrimary)
+                                .frame(width: 44, height: 44)
+                                .background(designSystem.colors.surfaceChrome, in: RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous)
+                                        .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, designSystem.spacing.xl)
+                        .padding(.top, 20)
+                    }
+                }
 
                 VStack(spacing: 10) {
                     avatarView
@@ -87,6 +115,9 @@ struct MessagesScreen: View {
                     viewModel.alert = nil
                 }
             )
+        }
+        .task {
+            await viewModel.prepareConversation()
         }
     }
 
