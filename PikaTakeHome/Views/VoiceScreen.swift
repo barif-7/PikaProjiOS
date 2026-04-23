@@ -44,10 +44,10 @@ struct VoiceScreen: View {
                 Spacer(minLength: 0)
 
                 VStack(spacing: 0) {
-                    headerSection
-
                     avatarPreview
-                        .padding(.top, 28)
+                        .padding(.bottom, 28)
+
+                    headerSection
 
                     quoteSection
                         .padding(.top, 28)

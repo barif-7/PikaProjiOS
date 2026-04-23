@@ -101,6 +101,12 @@ struct MessagesScreen: View {
                     SecondaryButton(title: AppStrings.messagesEndCall, trailingAsset: .shareIcon) {
                         viewModel.endCallTapped()
                     }
+
+                    if viewModel.showsRetrainVoiceButton {
+                        SecondaryButton(title: AppStrings.messagesRetrainVoice, trailingAsset: .arrowTopRight) {
+                            viewModel.retrainVoiceTapped()
+                        }
+                    }
                 }
                 .padding(.horizontal, designSystem.spacing.xl)
                 .padding(.bottom, 28)
@@ -127,6 +133,8 @@ struct MessagesScreen: View {
                 Image(uiImage: avatarImage)
                     .resizable()
                     .scaledToFill()
+            } else if ImportedAsset.semiPortrait.existsInBundle {
+                ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
             } else {
                 Circle()
                     .fill(designSystem.colors.accentSecondary)

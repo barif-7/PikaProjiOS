@@ -32,6 +32,7 @@ final class PrototypeCoordinator: ObservableObject {
 
     // Used to cancel any in-flight transition work when the flow resets or deinitializes.
     private var pendingTransitionTask: Task<Void, Never>?
+    private var isRetrainingVoiceProfile = false
 
     init(
         sessionStore: PrototypeSessionStore? = nil,
@@ -161,7 +162,7 @@ final class PrototypeCoordinator: ObservableObject {
     private func makeVoiceViewModel() -> PrototypeVoiceViewModel {
         let viewModel = PrototypeVoiceViewModel(featureFlags: featureFlags)
         viewModel.onBackRequested = { [weak self] in
-            self?.showCamera()
+            self?.handleVoiceBackRequested()
         }
         viewModel.onStartRecordingRequested = { [weak self] in
             self?.showVoiceRecording()
@@ -198,6 +199,11 @@ final class PrototypeCoordinator: ObservableObject {
         }
         viewModel.onOpenProviderSettingsRequested = { [weak self] in
             self?.showProviderSettings()
+        }
+        viewModel.onRetrainVoiceRequested = { [weak self] in
+            Task { [weak self] in
+                await self?.showVoiceRetraining()
+            }
         }
         return viewModel
     }
@@ -254,17 +260,48 @@ final class PrototypeCoordinator: ObservableObject {
         route = .voice(.complete)
     }
 
+    private func showVoiceRetraining() async {
+        isRetrainingVoiceProfile = true
+        await clearStoredVoiceProfileSelection()
+        voiceViewModel.prepareForRetraining(
+            baseProfileID: nil,
+            avatarImage: messagesViewModel.avatarImage
+        )
+        route = .voice(.prompt)
+    }
+
+    private func clearStoredVoiceProfileSelection() async {
+        sessionStore.saveVoiceProfileID(nil)
+        messagesViewModel.setVoiceProfileID(nil)
+        await messagesViewModel.saveConversationNow()
+    }
+
+    private func handleVoiceBackRequested() {
+        if isRetrainingVoiceProfile {
+            isRetrainingVoiceProfile = false
+            showMessages()
+        } else {
+            showCamera()
+        }
+    }
+
     // Persists the trained voice profile and advances the user into the success state.
     private func completeVoiceStep() {
         pendingTransitionTask?.cancel()
         isProcessing = false
+        let shouldReturnToMessages = isRetrainingVoiceProfile
+        isRetrainingVoiceProfile = false
         let trainedVoiceProfileID = voiceViewModel.trainedVoiceProfileID
         sessionStore.saveVoiceProfileID(trainedVoiceProfileID)
         messagesViewModel.setVoiceProfileID(trainedVoiceProfileID)
         Task { [weak self] in
             await self?.messagesViewModel.saveConversationNow()
         }
-        showSuccess()
+        if shouldReturnToMessages {
+            showMessages()
+        } else {
+            showSuccess()
+        }
     }
 
     private func showSuccess() {
@@ -293,6 +330,7 @@ final class PrototypeCoordinator: ObservableObject {
         isProcessing = false
         let sessionState = sessionStore.state
         route = Self.defaultRoute(for: sessionState)
+        isRetrainingVoiceProfile = false
         welcomeViewModel.reset(phoneNumber: sessionState.phoneNumber)
         voiceViewModel.reset()
         successViewModel.setAvatarImage(nil)
