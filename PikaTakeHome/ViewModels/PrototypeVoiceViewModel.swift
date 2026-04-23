@@ -349,13 +349,6 @@ enum VoiceTrainingServiceFactory {
     }
 }
 
-private extension String {
-    var nilIfBlank: String? {
-        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
-    }
-}
-
 /// Local fallback used when a backend training service is unavailable.
 actor MockVoiceProfileTrainingService: VoiceProfileTraining {
     private var jobs: [String: Date] = [:]
@@ -430,9 +423,12 @@ final class AVAudioVoiceSampleRecorder: NSObject, VoiceSampleRecording, @uncheck
             .appendingPathComponent("pika-voice-\(UUID().uuidString)")
             .appendingPathExtension("wav")
 
+        // Whisper resamples input to 16 kHz internally, and the backend simply
+        // forwards the recorded audio, so recording at the ASR's native rate
+        // keeps transcription quality while cutting the upload payload ~2.75x.
         let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: 44_100,
+            AVSampleRateKey: 16_000,
             AVNumberOfChannelsKey: 1,
             AVLinearPCMBitDepthKey: 16,
             AVLinearPCMIsBigEndianKey: false,
@@ -652,7 +648,21 @@ final class PrototypeVoiceViewModel: ObservableObject {
                 )
             )
 
+            // Cap the polling window to avoid spinning forever if the trainer
+            // never reaches a terminal state. The backend's own trainer timeout
+            // is 15m by default, so 20m here gives a bit of slack before we give
+            // up and surface a friendly error.
+            let pollStart = Date()
+            let maxPollDuration: TimeInterval = 20 * 60
             while true {
+                if Date().timeIntervalSince(pollStart) > maxPollDuration {
+                    throw NSError(
+                        domain: "VoiceTraining",
+                        code: 2,
+                        userInfo: [NSLocalizedDescriptionKey: "Voice training is taking longer than expected. Please try again."]
+                    )
+                }
+
                 let status = try await trainer.status(for: jobID)
                 switch status {
                 case .queued:

@@ -216,9 +216,12 @@ final class MessagesAudioRecorder: NSObject, MessagesVoiceRecorder, @unchecked S
             .appendingPathComponent("pika-messages-\(UUID().uuidString)")
             .appendingPathExtension("wav")
 
+        // Whisper resamples input to 16 kHz internally, and the backend simply
+        // forwards the recorded audio, so recording at the ASR's native rate
+        // keeps transcription quality while cutting the upload payload ~2.75x.
         let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: 44_100,
+            AVSampleRateKey: 16_000,
             AVNumberOfChannelsKey: 1,
             AVLinearPCMBitDepthKey: 16,
             AVLinearPCMIsBigEndianKey: false,
@@ -619,10 +622,14 @@ final class PrototypeMessagesViewModel: ObservableObject {
     }
 
     func setVoiceProfileID(_ profileID: String?) {
-        voiceProfileID = profileID
+        voiceProfileID = profileID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfBlank
         Task {
             await persistConversationIfPossible()
         }
+    }
+
+    func saveConversationNow() async {
+        await persistConversationIfPossible()
     }
 
     func reset() {
@@ -703,9 +710,11 @@ final class PrototypeMessagesViewModel: ObservableObject {
         guard !hasLoadedPersistedConversation else { return }
         hasLoadedPersistedConversation = true
         guard let conversationStore else { return }
+        let preferredVoiceProfileID = voiceProfileID?.nilIfBlank
 
         do {
             let snapshot = try await conversationStore.loadConversation()
+            let storedVoiceProfileID = snapshot.voiceProfileID?.nilIfBlank
             if snapshot.messages.isEmpty {
                 messages = PrototypeMessagesViewModel.initialMessages
                 conversationSummary = snapshot.summary
@@ -713,8 +722,11 @@ final class PrototypeMessagesViewModel: ObservableObject {
                 messages = snapshot.messages
                 conversationSummary = snapshot.summary
             }
-            if let storedVoiceProfileID = snapshot.voiceProfileID, !storedVoiceProfileID.isEmpty {
-                voiceProfileID = storedVoiceProfileID
+
+            let resolvedVoiceProfileID = preferredVoiceProfileID ?? storedVoiceProfileID
+            voiceProfileID = resolvedVoiceProfileID
+            if preferredVoiceProfileID != nil, preferredVoiceProfileID != storedVoiceProfileID {
+                await persistConversationIfPossible()
             }
         } catch {
             // Keep the current in-memory conversation when sync fails.
@@ -853,12 +865,5 @@ final class PrototypeMessagesViewModel: ObservableObject {
     private func formattedDuration(_ duration: TimeInterval) -> String {
         let seconds = max(0, Int(duration.rounded(.down)))
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
-    }
-}
-
-private extension String {
-    var nilIfBlank: String? {
-        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
     }
 }

@@ -193,9 +193,6 @@ final class PrototypeCoordinator: ObservableObject {
     // Creates the messages view model and binds navigation into settings.
     private func makeMessagesViewModel() -> PrototypeMessagesViewModel {
         let viewModel = PrototypeMessagesViewModel(featureFlags: featureFlags)
-        if let savedVoiceProfileID = sessionStore.state.voiceProfileID, !savedVoiceProfileID.isEmpty {
-            viewModel.setVoiceProfileID(savedVoiceProfileID)
-        }
         viewModel.onBackRequested = { [weak self] in
             self?.showSuccess()
         }
@@ -264,6 +261,9 @@ final class PrototypeCoordinator: ObservableObject {
         let trainedVoiceProfileID = voiceViewModel.trainedVoiceProfileID
         sessionStore.saveVoiceProfileID(trainedVoiceProfileID)
         messagesViewModel.setVoiceProfileID(trainedVoiceProfileID)
+        Task { [weak self] in
+            await self?.messagesViewModel.saveConversationNow()
+        }
         showSuccess()
     }
 

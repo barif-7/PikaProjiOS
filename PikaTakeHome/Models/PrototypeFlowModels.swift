@@ -537,3 +537,12 @@ private enum KeychainSessionVault {
         SecItemDelete(query as CFDictionary)
     }
 }
+
+/// Shared String helper used across the app. Returns the trimmed value,
+/// or `nil` if the string is empty/whitespace after trimming.
+extension String {
+    var nilIfBlank: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+}

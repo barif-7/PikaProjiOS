@@ -101,6 +101,7 @@ struct SuccessScreen: View {
                             height: designSystem.controlSize.secondaryButtonHeight,
                             action: { viewModel.openMessagesTapped() }
                         )
+                        // TODO: Wire up share-ID-card flow when the share sheet is implemented.
                         SecondaryButton(title: AppStrings.successShareIDCard, trailingAsset: .shareIcon, action: {})
                     }
                     .padding(.horizontal, horizontalPadding)
