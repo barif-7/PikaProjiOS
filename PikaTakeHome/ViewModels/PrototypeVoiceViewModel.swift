@@ -558,6 +558,23 @@ final class PrototypeVoiceViewModel: ObservableObject {
         stopRecordingProgress()
     }
 
+    func prepareForRetraining(baseProfileID: String?, avatarImage: UIImage?) {
+        stage = .prompt
+        if let avatarImage {
+            self.avatarImage = avatarImage
+        }
+        alert = nil
+        statusMessage = nil
+        recordingDuration = 0
+        isTraining = false
+        trainedVoiceProfileID = baseProfileID?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfBlank
+        recordedSample = nil
+        stopRecordingProgress()
+        Task {
+            await recorder.cancel()
+        }
+    }
+
     func setAvatarImage(_ image: UIImage?) {
         avatarImage = image
     }
