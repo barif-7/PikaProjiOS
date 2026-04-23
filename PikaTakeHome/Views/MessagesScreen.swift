@@ -62,6 +62,19 @@ struct MessagesScreen: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, designSystem.spacing.xl)
 
+                    Button {
+                        viewModel.updateAvatarTapped()
+                    } label: {
+                        Text(String(localized: AppStrings.messagesUpdateAvatar))
+                            .font(designSystem.fonts.telka(13, weight: .medium))
+                            .foregroundStyle(designSystem.colors.accentQuote)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.white.opacity(0.52), in: Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 2)
+
                     Text(viewModel.statusText)
                         .font(designSystem.fonts.telka(13, weight: .medium))
                         .foregroundStyle(designSystem.colors.accentQuote)

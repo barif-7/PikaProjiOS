@@ -35,6 +35,8 @@ enum MessagesVoiceChatError: LocalizedError {
     case failedToStartRecording
     case failedToStopRecording
     case backendNotConfigured
+    case voiceProfileRequired
+    case textOnlyResponse
     case backendNetworkFailed(message: String)
     case invalidResponse
     case backendFailed(message: String)
@@ -47,6 +49,10 @@ enum MessagesVoiceChatError: LocalizedError {
             return String(localized: AppStrings.messagesRecordingFailedTitle)
         case .backendNotConfigured, .backendNetworkFailed, .invalidResponse, .backendFailed:
             return String(localized: AppStrings.messagesBackendFailedTitle)
+        case .voiceProfileRequired:
+            return String(localized: AppStrings.messagesVoiceProfileRequiredTitle)
+        case .textOnlyResponse:
+            return String(localized: AppStrings.messagesTextOnlyTitle)
         }
     }
 
@@ -58,6 +64,10 @@ enum MessagesVoiceChatError: LocalizedError {
             return String(localized: AppStrings.messagesRecordingFailedBody)
         case .backendNotConfigured:
             return String(localized: AppStrings.messagesBackendNotConfiguredBody)
+        case .voiceProfileRequired:
+            return String(localized: AppStrings.messagesVoiceProfileRequiredBody)
+        case .textOnlyResponse:
+            return String(localized: AppStrings.messagesTextOnlyBody)
         case let .backendNetworkFailed(message):
             return message
         case .invalidResponse:
@@ -158,6 +168,7 @@ struct MessagesTurnResult {
 struct MessagesConversationSnapshot {
     let summary: String
     let voiceProfileID: String?
+    let avatarImage: UIImage?
     let messages: [PrototypeVoiceChatMessage]
 }
 
@@ -175,6 +186,7 @@ protocol MessagesConversationPersisting {
     func saveConversation(
         summary: String,
         voiceProfileID: String?,
+        avatarImage: UIImage?,
         messages: [PrototypeVoiceChatMessage]
     ) async throws
 }
@@ -393,12 +405,14 @@ private struct MessagesConversationResponse: Decodable {
     let conversationID: String
     let summary: String
     let voiceProfileID: String?
+    let avatarBase64: String?
     let messages: [MessagesConversationBackendMessage]
 
     enum CodingKeys: String, CodingKey {
         case conversationID = "conversationId"
         case summary
         case voiceProfileID = "voiceProfileID"
+        case avatarBase64 = "avatarBase64"
         case messages
     }
 }
@@ -406,6 +420,7 @@ private struct MessagesConversationResponse: Decodable {
 private struct MessagesConversationRequest: Encodable {
     let summary: String
     let voiceProfileID: String?
+    let avatarBase64: String?
     let messages: [MessagesConversationBackendMessage]
 }
 
@@ -438,6 +453,7 @@ actor HTTPMessagesConversationService: MessagesConversationPersisting {
         return MessagesConversationSnapshot(
             summary: decoded.summary,
             voiceProfileID: decoded.voiceProfileID,
+            avatarImage: Self.decodeAvatarImage(from: decoded.avatarBase64),
             messages: decoded.messages.compactMap(Self.mapMessage)
         )
     }
@@ -445,6 +461,7 @@ actor HTTPMessagesConversationService: MessagesConversationPersisting {
     func saveConversation(
         summary: String,
         voiceProfileID: String?,
+        avatarImage: UIImage?,
         messages: [PrototypeVoiceChatMessage]
     ) async throws {
         var request = URLRequest(url: url)
@@ -455,6 +472,7 @@ actor HTTPMessagesConversationService: MessagesConversationPersisting {
             MessagesConversationRequest(
                 summary: summary,
                 voiceProfileID: voiceProfileID,
+                avatarBase64: Self.encodeAvatarImage(avatarImage),
                 messages: messages.map {
                     MessagesConversationBackendMessage(
                         role: $0.speaker == .user ? "user" : "assistant",
@@ -496,6 +514,19 @@ actor HTTPMessagesConversationService: MessagesConversationPersisting {
         let trimmedContent = message.content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedContent.isEmpty else { return nil }
         return PrototypeVoiceChatMessage(speaker: speaker, text: trimmedContent)
+    }
+
+    private static func decodeAvatarImage(from base64: String?) -> UIImage? {
+        guard let base64, let data = Data(base64Encoded: base64) else { return nil }
+        return UIImage(data: data)
+    }
+
+    private static func encodeAvatarImage(_ image: UIImage?) -> String? {
+        guard let image else { return nil }
+        return image
+            .resizedForConversationAvatar(maxDimension: 512)?
+            .jpegData(compressionQuality: 0.82)?
+            .base64EncodedString()
     }
 }
 
@@ -583,6 +614,8 @@ final class PrototypeMessagesViewModel: ObservableObject {
 
     var onBackRequested: (() -> Void)?
     var onOpenProviderSettingsRequested: (() -> Void)?
+    var onRetrainVoiceRequested: (() -> Void)?
+    var onUpdateAvatarRequested: (() -> Void)?
 
     private let recorder: MessagesVoiceRecorder
     private let chatService: MessagesVoiceChatResponding
@@ -664,6 +697,10 @@ final class PrototypeMessagesViewModel: ObservableObject {
                 presentAlert(for: .backendNotConfigured)
                 return
             }
+            guard !featureFlags.isEnabled(.enableVoiceChat) || voiceProfileID?.nilIfBlank != nil else {
+                presentAlert(for: .voiceProfileRequired)
+                return
+            }
             Task {
                 await startListening()
             }
@@ -683,6 +720,26 @@ final class PrototypeMessagesViewModel: ObservableObject {
         audioPlayer.stop()
         callState = .idle
         statusText = String(localized: AppStrings.messagesStatusReady)
+    }
+
+    func retrainVoiceTapped() {
+        Task {
+            await recorder.cancel()
+        }
+        audioPlayer.stop()
+        callState = .idle
+        statusText = String(localized: AppStrings.messagesStatusReady)
+        onRetrainVoiceRequested?()
+    }
+
+    func updateAvatarTapped() {
+        Task {
+            await recorder.cancel()
+        }
+        audioPlayer.stop()
+        callState = .idle
+        statusText = String(localized: AppStrings.messagesStatusReady)
+        onUpdateAvatarRequested?()
     }
 
     func openProviderSettingsTapped() {
@@ -706,11 +763,16 @@ final class PrototypeMessagesViewModel: ObservableObject {
         featureFlags.isEnabled(.enableVoiceChat)
     }
 
+    var showsRetrainVoiceButton: Bool {
+        featureFlags.isEnabled(.enableVoiceTraining)
+    }
+
     func prepareConversation() async {
         guard !hasLoadedPersistedConversation else { return }
         hasLoadedPersistedConversation = true
         guard let conversationStore else { return }
         let preferredVoiceProfileID = voiceProfileID?.nilIfBlank
+        let preferredAvatarImage = avatarImage
 
         do {
             let snapshot = try await conversationStore.loadConversation()
@@ -725,7 +787,10 @@ final class PrototypeMessagesViewModel: ObservableObject {
 
             let resolvedVoiceProfileID = preferredVoiceProfileID ?? storedVoiceProfileID
             voiceProfileID = resolvedVoiceProfileID
+            avatarImage = preferredAvatarImage ?? snapshot.avatarImage
             if preferredVoiceProfileID != nil, preferredVoiceProfileID != storedVoiceProfileID {
+                await persistConversationIfPossible()
+            } else if preferredAvatarImage != nil, snapshot.avatarImage == nil {
                 await persistConversationIfPossible()
             }
         } catch {
@@ -773,6 +838,8 @@ final class PrototypeMessagesViewModel: ObservableObject {
 
             if let responseAudioData = result.responseAudioData {
                 try audioPlayer.play(responseAudioData)
+            } else {
+                presentAlert(for: .textOnlyResponse)
             }
 
             callState = .idle
@@ -855,6 +922,7 @@ final class PrototypeMessagesViewModel: ObservableObject {
             try await conversationStore.saveConversation(
                 summary: conversationSummary,
                 voiceProfileID: voiceProfileID,
+                avatarImage: avatarImage,
                 messages: messages
             )
         } catch {
@@ -865,5 +933,19 @@ final class PrototypeMessagesViewModel: ObservableObject {
     private func formattedDuration(_ duration: TimeInterval) -> String {
         let seconds = max(0, Int(duration.rounded(.down)))
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
+private extension UIImage {
+    func resizedForConversationAvatar(maxDimension: CGFloat) -> UIImage? {
+        let longestSide = max(size.width, size.height)
+        guard longestSide > maxDimension else { return self }
+
+        let scale = maxDimension / longestSide
+        let targetSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 }

@@ -61,9 +61,11 @@
 "prototype.messages.status_listening" = "Listening...";
 "prototype.messages.status_responding" = "SEMI is responding...";
 "prototype.messages.hint" = "Start talking, finish your turn, and let SEMI answer back.";
+"prototype.messages.update_avatar" = "Update Avatar";
 "prototype.messages.start_talking" = "Start Talking";
 "prototype.messages.finish_turn" = "Finish Turn";
 "prototype.messages.end_call" = "End Call";
+"prototype.messages.retrain_voice" = "Retrain Voice";
 "prototype.messages.microphone_permission_title" = "Microphone access needed";
 "prototype.messages.microphone_permission_body" = "Allow microphone access so you can talk to SEMI by voice.";
 "prototype.messages.speech_permission_title" = "Speech access needed";
@@ -75,6 +77,10 @@
 "prototype.messages.backend_failed_title" = "Voice chat unavailable";
 "prototype.messages.backend_failed_body" = "We couldn’t get a response from your AI Self right now. Try again once the open-source voice backend is running.";
 "prototype.messages.backend_not_configured_body" = "Set `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL` so the app can reach your self-hosted Whisper, Mistral, and Kokoro stack.";
+"prototype.messages.voice_profile_required_title" = "Voice profile needed";
+"prototype.messages.voice_profile_required_body" = "Record and train your voice first so SEMI has a voice profile to answer with.";
+"prototype.messages.text_only_title" = "Text response only";
+"prototype.messages.text_only_body" = "SEMI replied, but the backend did not return voice audio. Retrain your voice profile if this keeps happening.";
 "prototype.provider.title" = "MODEL PROVIDER";
 "prototype.provider.subtitle" = "Connect your own Ollama-compatible endpoint for future chat routing.";
 "prototype.provider.account" = "Account";

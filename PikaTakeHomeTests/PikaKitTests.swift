@@ -24,7 +24,7 @@ final class PikaKitTests: XCTestCase {
     @MainActor
     func testPrepareConversationPersistsPreferredVoiceProfileIDWhenBackendIsEmpty() async {
         let store = MockMessagesConversationStore(
-            snapshot: MessagesConversationSnapshot(summary: "", voiceProfileID: nil, messages: [])
+            snapshot: MessagesConversationSnapshot(summary: "", voiceProfileID: nil, avatarImage: nil, messages: [])
         )
         let viewModel = PrototypeMessagesViewModel(
             recorder: MockMessagesVoiceRecorder(),
@@ -43,7 +43,7 @@ final class PikaKitTests: XCTestCase {
     @MainActor
     func testPrepareConversationHydratesStoredVoiceProfileIDWhenLocalIsEmpty() async {
         let store = MockMessagesConversationStore(
-            snapshot: MessagesConversationSnapshot(summary: "", voiceProfileID: "voice-profile-stored", messages: [])
+            snapshot: MessagesConversationSnapshot(summary: "", voiceProfileID: "voice-profile-stored", avatarImage: nil, messages: [])
         )
         let viewModel = PrototypeMessagesViewModel(
             recorder: MockMessagesVoiceRecorder(),
@@ -121,6 +121,7 @@ private actor MockMessagesConversationStore: MessagesConversationPersisting {
     func saveConversation(
         summary: String,
         voiceProfileID: String?,
+        avatarImage: UIImage?,
         messages: [PrototypeVoiceChatMessage]
     ) async throws {
         lastSavedVoiceProfileID = voiceProfileID
