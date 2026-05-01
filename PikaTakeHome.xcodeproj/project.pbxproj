@@ -30,6 +30,7 @@
 		1D94B0F72F908D7400373810 /* PrototypeArtwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */; };
 		1D94B0F92F90A82F00373810 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B0F82F90A82F00373810 /* Localizable.strings */; };
 		1D94B1002F90A82F00373810 /* ImportedAssets in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B1012F90A82F00373810 /* ImportedAssets */; };
+		4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1D10052B23000100FACE01 /* AudioChunking.swift */; };
 		A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */; };
 		A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */; };
 		5E0000010000000000FACE01 /* PikaKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0000000000000000FACE01 /* PikaKit.swift */; };
@@ -63,6 +64,7 @@
 		1D94B0F62F908D7400373810 /* PrototypeArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeArtwork.swift; sourceTree = "<group>"; };
 		1D94B0F82F90A82F00373810 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		1D94B1012F90A82F00373810 /* ImportedAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ImportedAssets; sourceTree = "<group>"; };
+		4C1D10052B23000100FACE01 /* AudioChunking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChunking.swift; sourceTree = "<group>"; };
 		A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesViewModel.swift; sourceTree = "<group>"; };
 		A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesScreen.swift; sourceTree = "<group>"; };
 		5E0000000000000000FACE01 /* PikaKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaKit.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 				1A1A1A1A1A1A1A1A1A1A1A13 /* DesignSystem.swift */,
 				5E0000040000000000FACE01 /* PikaKit */,
 				6F4A00022C21000100FACE01 /* FeatureFlags */,
+				4C1D10062B23000100FACE01 /* Services */,
 				1D94B0D92F908B6D00373810 /* Flow */,
 				1D94B0DA2F908B6D00373810 /* Models */,
 				1D94B0DB2F908B6D00373810 /* ViewModels */,
@@ -175,6 +178,14 @@
 				2B7F10002A00000100FACE01 /* SelfieAvatarPipeline.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		4C1D10062B23000100FACE01 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				4C1D10052B23000100FACE01 /* AudioChunking.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		1D94B0DB2F908B6D00373810 /* ViewModels */ = {
@@ -322,6 +333,7 @@
 				1D94B0F52F908D7300373810 /* PrototypeControls.swift in Sources */,
 				1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */,
 				4C1D10012B22000100FACE01 /* PrototypeProviderSettingsViewModel.swift in Sources */,
+				4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */,
 				1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */,
 				A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */,
 				4C1D10032B22000100FACE01 /* ProviderSettingsScreen.swift in Sources */,

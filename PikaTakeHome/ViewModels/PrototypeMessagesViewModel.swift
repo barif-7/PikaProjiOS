@@ -148,7 +148,8 @@ private struct MessagesBackendHistoryMessage: Encodable {
 }
 
 private struct MessagesBackendTurnRequest: Encodable {
-    let audioBase64: String
+    let audioBase64: String?
+    let audioChunks: [AudioUploadChunk]?
     let mimeType: String
     let fileName: String
     let durationSeconds: TimeInterval
@@ -342,10 +343,13 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         conversationSummary: String?,
         voiceProfileID: String?
     ) async throws -> MessagesTurnResult {
-        let audioData = try Data(contentsOf: recordedTurn.fileURL)
+        let audioChunks = try AudioChunker.chunkedUploads(for: recordedTurn.fileURL, duration: recordedTurn.duration)
+        let shouldChunk = !audioChunks.isEmpty
+        let audioBase64 = shouldChunk ? nil : try Data(contentsOf: recordedTurn.fileURL).base64EncodedString()
         let trimmedHistory = history.suffix(Self.maxHistoryMessages)
         let requestBody = MessagesBackendTurnRequest(
-            audioBase64: audioData.base64EncodedString(),
+            audioBase64: audioBase64,
+            audioChunks: shouldChunk ? audioChunks : nil,
             mimeType: recordedTurn.mimeType,
             fileName: recordedTurn.fileURL.lastPathComponent,
             durationSeconds: recordedTurn.duration,

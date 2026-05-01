@@ -153,7 +153,8 @@ private struct VoiceTrainingSubmitRequest: Encodable {
     let durationSeconds: TimeInterval
     let fileName: String
     let mimeType: String
-    let audioBase64: String
+    let audioBase64: String?
+    let audioChunks: [AudioUploadChunk]?
     let baseProfileID: String?
 }
 
@@ -229,13 +230,16 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
     }
 
     func submit(sample: VoiceTrainingSample) async throws -> String {
-        let audioData = try Data(contentsOf: sample.fileURL)
+        let audioChunks = try AudioChunker.chunkedUploads(for: sample.fileURL, duration: sample.duration)
+        let shouldChunk = !audioChunks.isEmpty
+        let audioBase64 = shouldChunk ? nil : try Data(contentsOf: sample.fileURL).base64EncodedString()
         let body = VoiceTrainingSubmitRequest(
             transcript: sample.transcript,
             durationSeconds: sample.duration,
             fileName: sample.fileURL.lastPathComponent,
             mimeType: sample.mimeType,
-            audioBase64: audioData.base64EncodedString(),
+            audioBase64: audioBase64,
+            audioChunks: shouldChunk ? audioChunks : nil,
             baseProfileID: sample.baseProfileID?.nilIfBlank
         )
 

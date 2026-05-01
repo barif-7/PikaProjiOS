@@ -24,6 +24,7 @@ SwiftUI implementation of the Pika iOS prototype flow.
 ## Open Messages backend
 - The app now submits voice turns to `POST /voice-chat/jobs` and polls `GET /voice-chat/jobs/{jobId}` from `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL`.
 - The app expects `POST /voice-profiles` and `GET /voice-profiles/{jobId}` from `VoiceTrainingBaseURL` or `VOICE_TRAINING_BASE_URL`.
+- Long recordings are now sent as optional 15-second audio chunks so the backend can transcribe them in smaller pieces instead of one large payload.
 - Google auth uses `AuthBaseURL` / `AUTH_BASE_URL` and supports either:
   - a custom callback scheme via `AuthRedirectScheme` / `AUTH_REDIRECT_SCHEME`
   - or a full redirect URL via `AuthRedirectURL` / `AUTH_REDIRECT_URL` for Universal Link migration
