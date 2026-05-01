@@ -231,6 +231,35 @@ struct PrototypeAuthenticatedUser: Codable, Equatable {
 struct PrototypeAppSession: Codable, Equatable {
     let sessionToken: String
     let user: PrototypeAuthenticatedUser
+    let expiresAt: String?
+
+    var expirationDate: Date? {
+        guard let expiresAt else { return nil }
+        return Self.sessionDateFormatter.date(from: expiresAt)
+            ?? Self.fallbackSessionDateFormatter.date(from: expiresAt)
+    }
+
+    func isExpired(relativeTo date: Date = .now) -> Bool {
+        guard let expirationDate else { return false }
+        return expirationDate <= date
+    }
+
+    func isExpiringSoon(within interval: TimeInterval, relativeTo date: Date = .now) -> Bool {
+        guard let expirationDate else { return false }
+        return expirationDate.timeIntervalSince(date) <= interval
+    }
+
+    private static let sessionDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    private static let fallbackSessionDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
 }
 
 /// Snapshot wrapper for the current authenticated app session.
@@ -272,7 +301,14 @@ final class PrototypeAppSessionStore {
         guard let data = KeychainSessionVault.load(service: Constants.service, account: Constants.account) else {
             return nil
         }
-        return try? decoder.decode(PrototypeAppSession.self, from: data)
+        guard let session = try? decoder.decode(PrototypeAppSession.self, from: data) else {
+            return nil
+        }
+        if session.isExpired() {
+            clear()
+            return nil
+        }
+        return session
     }
 }
 
@@ -280,6 +316,7 @@ final class PrototypeAppSessionStore {
 struct AuthBackendConfiguration {
     let baseURL: URL
     let callbackScheme: String
+    let callbackURL: URL?
 
     private static let simulatorDefaultBaseURL = URL(string: "http://127.0.0.1:8080")!
 
@@ -293,26 +330,53 @@ struct AuthBackendConfiguration {
 
         let environmentValue = processInfo.environment["AUTH_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let environmentValue, !environmentValue.isEmpty, let url = URL(string: environmentValue) {
-            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme)
+            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         let plistAuthValue = (bundle.object(forInfoDictionaryKey: "AuthBaseURL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let plistAuthValue, !plistAuthValue.isEmpty, let url = URL(string: plistAuthValue) {
-            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme)
+            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         let plistChatValue = (bundle.object(forInfoDictionaryKey: "VoiceChatBaseURL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let plistChatValue, !plistChatValue.isEmpty, let url = URL(string: plistChatValue) {
-            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme)
+            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         #if targetEnvironment(simulator)
-        return AuthBackendConfiguration(baseURL: simulatorDefaultBaseURL, callbackScheme: callbackScheme)
+        let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+        return AuthBackendConfiguration(baseURL: simulatorDefaultBaseURL, callbackScheme: callbackScheme, callbackURL: callbackURL)
         #else
         return nil
         #endif
+    }
+
+    private static func loadCallbackURL(
+        bundle: Bundle,
+        processInfo: ProcessInfo
+    ) -> URL? {
+        let environmentValue = processInfo.environment["AUTH_REDIRECT_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let environmentValue, !environmentValue.isEmpty {
+            return URL(string: environmentValue)
+        }
+        let plistValue = (bundle.object(forInfoDictionaryKey: "AuthRedirectURL") as? String)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if let plistValue, !plistValue.isEmpty {
+            return URL(string: plistValue)
+        }
+        return nil
+    }
+
+    var callbackURLScheme: String? {
+        if let callbackURL, callbackURL.scheme?.lowercased() == "https" {
+            return nil
+        }
+        return callbackURL?.scheme ?? callbackScheme
     }
 
     var sessionURL: URL {
@@ -352,6 +416,7 @@ enum PrototypeGoogleAuthError: LocalizedError {
 /// Service boundary for Google sign-in.
 protocol PrototypeGoogleAuthenticating {
     func signInWithGoogle() async throws -> PrototypeAppSession
+    func refreshSession(sessionToken: String) async throws -> PrototypeAppSession
     func signOut(sessionToken: String) async
 }
 
@@ -367,7 +432,7 @@ final class PrototypeGoogleOAuthService: NSObject, PrototypeGoogleAuthenticating
     }
 
     func signInWithGoogle() async throws -> PrototypeAppSession {
-        let callbackURL = URL(string: "\(configuration.callbackScheme)://auth/google")!
+        let callbackURL = configuration.callbackURL ?? URL(string: "\(configuration.callbackScheme)://auth/google")!
         let authStartURL = configuration.googleStartURL(mobileCallbackURL: callbackURL)
         let redirectURL = try await authenticate(at: authStartURL)
 
@@ -407,7 +472,28 @@ final class PrototypeGoogleOAuthService: NSObject, PrototypeGoogleAuthenticating
                 email: backendSession.user.email,
                 displayName: backendSession.user.displayName,
                 photoURL: backendSession.user.photoURL
-            )
+            ),
+            expiresAt: backendSession.expiresAt
+        )
+    }
+
+    func refreshSession(sessionToken: String) async throws -> PrototypeAppSession {
+        var request = URLRequest(url: configuration.sessionURL.appendingPathComponent("refresh"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
+
+        let backendSession = try decoder.decode(BackendSessionResponse.self, from: data)
+        return PrototypeAppSession(
+            sessionToken: backendSession.sessionToken,
+            user: PrototypeAuthenticatedUser(
+                userID: backendSession.user.userID,
+                email: backendSession.user.email,
+                displayName: backendSession.user.displayName,
+                photoURL: backendSession.user.photoURL
+            ),
+            expiresAt: backendSession.expiresAt
         )
     }
 
@@ -429,7 +515,7 @@ final class PrototypeGoogleOAuthService: NSObject, PrototypeGoogleAuthenticating
         try await withCheckedThrowingContinuation { continuation in
             let authSession = ASWebAuthenticationSession(
                 url: url,
-                callbackURLScheme: configuration.callbackScheme
+                callbackURLScheme: configuration.callbackURLScheme
             ) { callbackURL, error in
                 if let callbackURL {
                     continuation.resume(returning: callbackURL)
@@ -479,6 +565,7 @@ enum PrototypeGoogleAuthServiceFactory {
 private struct BackendSessionResponse: Decodable {
     let sessionToken: String
     let user: BackendAuthenticatedUser
+    let expiresAt: String?
 }
 
 private struct BackendAuthenticatedUser: Decodable {

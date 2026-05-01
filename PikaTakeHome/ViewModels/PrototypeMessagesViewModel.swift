@@ -132,6 +132,14 @@ struct VoiceChatBackendConfiguration {
     var turnURL: URL {
         baseURL.appendingPathComponent("voice-chat").appendingPathComponent("turn")
     }
+
+    var voiceJobsURL: URL {
+        baseURL.appendingPathComponent("voice-chat").appendingPathComponent("jobs")
+    }
+
+    func voiceJobStatusURL(jobID: String) -> URL {
+        voiceJobsURL.appendingPathComponent(jobID)
+    }
 }
 
 private struct MessagesBackendHistoryMessage: Encodable {
@@ -155,6 +163,36 @@ private struct MessagesBackendTurnResponse: Decodable {
     let responseAudioBase64: String?
     let responseAudioMimeType: String?
     let error: String?
+}
+
+private struct MessagesBackendVoiceJobSubmitResponse: Decodable {
+    let jobID: String
+    let stage: String
+
+    enum CodingKeys: String, CodingKey {
+        case jobID = "jobId"
+        case stage
+    }
+}
+
+private struct MessagesBackendVoiceJobStatusResponse: Decodable {
+    let jobID: String
+    let stage: String
+    let transcript: String?
+    let responseText: String?
+    let responseAudioBase64: String?
+    let responseAudioMimeType: String?
+    let error: String?
+
+    enum CodingKeys: String, CodingKey {
+        case jobID = "jobId"
+        case stage
+        case transcript
+        case responseText
+        case responseAudioBase64
+        case responseAudioMimeType
+        case error
+    }
 }
 
 /// Decoded backend result for a single conversational turn.
@@ -280,6 +318,7 @@ final class MessagesAudioRecorder: NSObject, MessagesVoiceRecorder, @unchecked S
 actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
     private static let maxHistoryMessages = 8
     private static let requestTimeout: TimeInterval = 180
+    private static let pollInterval: TimeInterval = 1.0
 
     private let configuration: VoiceChatBackendConfiguration
     private let sessionToken: String?
@@ -320,7 +359,7 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
             }
         )
 
-        var request = URLRequest(url: configuration.turnURL)
+        var request = URLRequest(url: configuration.voiceJobsURL)
         request.httpMethod = "POST"
         request.timeoutInterval = Self.requestTimeout
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -340,23 +379,8 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         }
         try validate(response: response, data: data)
 
-        let decoded = try decoder.decode(MessagesBackendTurnResponse.self, from: data)
-        if let error = decoded.error, !error.isEmpty {
-            throw MessagesVoiceChatError.backendFailed(message: error)
-        }
-
-        let transcript = decoded.transcript.trimmingCharacters(in: .whitespacesAndNewlines)
-        let responseText = decoded.responseText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !transcript.isEmpty, !responseText.isEmpty else {
-            throw MessagesVoiceChatError.invalidResponse
-        }
-
-        let responseAudioData = decoded.responseAudioBase64.flatMap { Data(base64Encoded: $0) }
-        return MessagesTurnResult(
-            transcript: transcript,
-            responseText: responseText,
-            responseAudioData: responseAudioData
-        )
+        let accepted = try decoder.decode(MessagesBackendVoiceJobSubmitResponse.self, from: data)
+        return try await pollForCompletedJob(jobID: accepted.jobID)
     }
 
     private static func networkFailureMessage(for error: URLError, baseURL: URL) -> String {
@@ -376,11 +400,64 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            let backendError = (try? decoder.decode(MessagesBackendTurnResponse.self, from: data))?.error
+            let backendError = (try? decoder.decode(MessagesBackendErrorResponse.self, from: data))?.message
+                ?? (try? decoder.decode(MessagesBackendTurnResponse.self, from: data))?.error
             throw MessagesVoiceChatError.backendFailed(
                 message: backendError ?? String(localized: AppStrings.messagesBackendFailedBody)
             )
         }
+    }
+
+    private func pollForCompletedJob(jobID: String) async throws -> MessagesTurnResult {
+        let deadline = Date().addingTimeInterval(Self.requestTimeout)
+
+        while Date() < deadline {
+            var request = URLRequest(url: configuration.voiceJobStatusURL(jobID: jobID))
+            request.httpMethod = "GET"
+            request.timeoutInterval = min(30, Self.requestTimeout)
+            if let sessionToken {
+                request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+            }
+
+            let data: Data
+            let response: URLResponse
+            do {
+                (data, response) = try await session.data(for: request)
+            } catch let error as URLError {
+                throw MessagesVoiceChatError.backendNetworkFailed(
+                    message: Self.networkFailureMessage(for: error, baseURL: configuration.baseURL)
+                )
+            }
+            try validate(response: response, data: data)
+
+            let decoded = try decoder.decode(MessagesBackendVoiceJobStatusResponse.self, from: data)
+            switch decoded.stage {
+            case "queued", "transcribing", "generating", "synthesizing":
+                try await Task.sleep(nanoseconds: UInt64(Self.pollInterval * 1_000_000_000))
+            case "failed":
+                throw MessagesVoiceChatError.backendFailed(
+                    message: decoded.error ?? String(localized: AppStrings.messagesBackendFailedBody)
+                )
+            case "ready":
+                let transcript = decoded.transcript?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let responseText = decoded.responseText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                guard !transcript.isEmpty, !responseText.isEmpty else {
+                    throw MessagesVoiceChatError.invalidResponse
+                }
+                let responseAudioData = decoded.responseAudioBase64.flatMap { Data(base64Encoded: $0) }
+                return MessagesTurnResult(
+                    transcript: transcript,
+                    responseText: responseText,
+                    responseAudioData: responseAudioData
+                )
+            default:
+                throw MessagesVoiceChatError.invalidResponse
+            }
+        }
+
+        throw MessagesVoiceChatError.backendFailed(
+            message: "The voice backend did not finish the queued job within \(Int(Self.requestTimeout)) seconds."
+        )
     }
 }
 

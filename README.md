@@ -22,8 +22,11 @@ SwiftUI implementation of the Pika iOS prototype flow.
 - Built the missing edge states as polished local states, rather than leaving dead ends.
 
 ## Open Messages backend
-- The app expects `POST /voice-chat/turn` from `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL`.
+- The app now submits voice turns to `POST /voice-chat/jobs` and polls `GET /voice-chat/jobs/{jobId}` from `VoiceChatBaseURL` or `VOICE_CHAT_BASE_URL`.
 - The app expects `POST /voice-profiles` and `GET /voice-profiles/{jobId}` from `VoiceTrainingBaseURL` or `VOICE_TRAINING_BASE_URL`.
+- Google auth uses `AuthBaseURL` / `AUTH_BASE_URL` and supports either:
+  - a custom callback scheme via `AuthRedirectScheme` / `AUTH_REDIRECT_SCHEME`
+  - or a full redirect URL via `AuthRedirectURL` / `AUTH_REDIRECT_URL` for Universal Link migration
 - The backend now lives in the separate `PikaProjBackend` repo.
 - This iOS repo does not include backend source or local backend scripts.
 - To run against a simulator or physical device, point the app at a reachable backend URL via:

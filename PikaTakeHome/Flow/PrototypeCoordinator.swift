@@ -54,6 +54,9 @@ final class PrototypeCoordinator: ObservableObject {
         
         self.route = Self.defaultRoute(for: sessionState)
         bindWelcomeViewModel()
+        Task { [weak self] in
+            await self?.refreshStoredSessionIfNeeded()
+        }
     }
 
     deinit {
@@ -419,6 +422,22 @@ final class PrototypeCoordinator: ObservableObject {
                     ? String(localized: AppStrings.welcomeGoogleAuthFailed)
                     : error.localizedDescription
             )
+        }
+    }
+
+    private func refreshStoredSessionIfNeeded() async {
+        guard let session = appSessionStore.state.session else { return }
+        guard session.isExpiringSoon(within: 60 * 60 * 24 * 3) else { return }
+        guard let googleAuthService else { return }
+
+        do {
+            let refreshedSession = try await googleAuthService.refreshSession(sessionToken: session.sessionToken)
+            appSessionStore.save(refreshedSession)
+            refreshAuthenticatedDependencies()
+        } catch {
+            appSessionStore.clear()
+            refreshAuthenticatedDependencies()
+            route = .welcome
         }
     }
 }

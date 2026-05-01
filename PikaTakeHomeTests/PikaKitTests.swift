@@ -74,17 +74,35 @@ final class PikaKitTests: XCTestCase {
             session: session
         )
 
+        var seenSubmit = false
         MockURLProtocol.requestHandler = { request in
-            let body = try XCTUnwrap(request.httpBody)
-            let jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
-            XCTAssertEqual(jsonObject["voiceProfileID"] as? String, "voice-profile-override")
-
             let url = try XCTUnwrap(request.url)
-            XCTAssertEqual(url.path, "/voice-chat/turn")
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer session-token")
+            if request.httpMethod == "POST" {
+                let body = try XCTUnwrap(request.httpBody)
+                let jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+                XCTAssertEqual(jsonObject["voiceProfileID"] as? String, "voice-profile-override")
+                XCTAssertEqual(url.path, "/voice-chat/jobs")
+                seenSubmit = true
+
+                let responseBody = """
+                {
+                  "jobId": "job-123",
+                  "stage": "queued"
+                }
+                """
+                let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil)!
+                return (response, Data(responseBody.utf8))
+            }
+
+            XCTAssertTrue(seenSubmit)
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertEqual(url.path, "/voice-chat/jobs/job-123")
 
             let responseBody = """
             {
+              "jobId": "job-123",
+              "stage": "ready",
               "transcript": "hello",
               "responseText": "hi",
               "responseAudioBase64": null,
