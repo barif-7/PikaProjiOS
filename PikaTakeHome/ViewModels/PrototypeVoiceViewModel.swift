@@ -88,30 +88,27 @@ struct VoiceTrainingCapabilities: Equatable {
 }
 
 /// Resolves the voice-training backend URL from environment, simulator defaults, or Info.plist.
+///
+/// Delegates to ``PikaBackendConfiguration`` for unified URL and API-key resolution.
+/// The legacy `VOICE_TRAINING_BASE_URL` and `VoiceTrainingBaseURL` values continue to work
+/// as fallbacks — new deployments should use `PIKA_BACKEND_BASE_URL`.
 struct VoiceTrainingAPIConfiguration {
     let baseURL: URL
-    private static let simulatorDefaultBaseURL = URL(string: "http://127.0.0.1:8080")!
+    let apiKey: String?
+
+    init(baseURL: URL, apiKey: String? = nil) {
+        self.baseURL = baseURL
+        self.apiKey = apiKey
+    }
 
     static func load(
         bundle: Bundle = .main,
         processInfo: ProcessInfo = .processInfo
     ) -> VoiceTrainingAPIConfiguration? {
-        let environmentValue = processInfo.environment["VOICE_TRAINING_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let environmentValue, !environmentValue.isEmpty, let url = URL(string: environmentValue) {
-            return VoiceTrainingAPIConfiguration(baseURL: url)
+        guard let pikaConfig = PikaBackendConfiguration.load(bundle: bundle, processInfo: processInfo) else {
+            return nil
         }
-
-        let plistValue = (bundle.object(forInfoDictionaryKey: "VoiceTrainingBaseURL") as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        if let plistValue, !plistValue.isEmpty, let url = URL(string: plistValue) {
-            return VoiceTrainingAPIConfiguration(baseURL: url)
-        }
-
-        #if targetEnvironment(simulator)
-        return VoiceTrainingAPIConfiguration(baseURL: simulatorDefaultBaseURL)
-        #else
-        return nil
-        #endif
+        return VoiceTrainingAPIConfiguration(baseURL: pikaConfig.baseURL, apiKey: pikaConfig.apiKey)
     }
 
     var submitURL: URL {
@@ -124,6 +121,12 @@ struct VoiceTrainingAPIConfiguration {
 
     func statusURL(for jobID: String) -> URL {
         submitURL.appendingPathComponent(jobID)
+    }
+
+    func decorate(_ request: inout URLRequest) {
+        if let apiKey, !apiKey.isEmpty {
+            request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        }
     }
 }
 
@@ -212,6 +215,7 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
         if let sessionToken {
             request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
         }
+        configuration.decorate(&request)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)
@@ -249,6 +253,7 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
         if let sessionToken {
             request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
         }
+        configuration.decorate(&request)
         request.httpBody = try encoder.encode(body)
 
         let (data, response) = try await session.data(for: request)
@@ -271,6 +276,7 @@ actor HTTPVoiceProfileTrainingService: VoiceProfileTraining {
         if let sessionToken {
             request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
         }
+        configuration.decorate(&request)
 
         let (data, response) = try await session.data(for: request)
         try validate(response: response, data: data)

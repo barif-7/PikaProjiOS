@@ -103,30 +103,27 @@ protocol MessagesVoiceRecorder {
 }
 
 /// Resolves the voice-chat backend URL from environment, simulator defaults, or Info.plist.
+///
+/// Delegates to ``PikaBackendConfiguration`` for unified URL and API-key resolution.
+/// The legacy `VOICE_CHAT_BASE_URL` environment variable and `VoiceChatBaseURL` Info.plist
+/// key continue to work as fallbacks — new deployments should use `PIKA_BACKEND_BASE_URL`.
 struct VoiceChatBackendConfiguration {
     let baseURL: URL
-    private static let simulatorDefaultBaseURL = URL(string: "http://127.0.0.1:8080")!
+    let apiKey: String?
+
+    init(baseURL: URL, apiKey: String? = nil) {
+        self.baseURL = baseURL
+        self.apiKey = apiKey
+    }
 
     static func load(
         bundle: Bundle = .main,
         processInfo: ProcessInfo = .processInfo
     ) -> VoiceChatBackendConfiguration? {
-        let environmentValue = processInfo.environment["VOICE_CHAT_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let environmentValue, !environmentValue.isEmpty, let url = URL(string: environmentValue) {
-            return VoiceChatBackendConfiguration(baseURL: url)
+        guard let pikaConfig = PikaBackendConfiguration.load(bundle: bundle, processInfo: processInfo) else {
+            return nil
         }
-
-        let plistValue = (bundle.object(forInfoDictionaryKey: "VoiceChatBaseURL") as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        if let plistValue, !plistValue.isEmpty, let url = URL(string: plistValue) {
-            return VoiceChatBackendConfiguration(baseURL: url)
-        }
-
-        #if targetEnvironment(simulator)
-        return VoiceChatBackendConfiguration(baseURL: simulatorDefaultBaseURL)
-        #else
-        return nil
-        #endif
+        return VoiceChatBackendConfiguration(baseURL: pikaConfig.baseURL, apiKey: pikaConfig.apiKey)
     }
 
     var turnURL: URL {
@@ -139,6 +136,12 @@ struct VoiceChatBackendConfiguration {
 
     func voiceJobStatusURL(jobID: String) -> URL {
         voiceJobsURL.appendingPathComponent(jobID)
+    }
+
+    func decorate(_ request: inout URLRequest) {
+        if let apiKey, !apiKey.isEmpty {
+            request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        }
     }
 }
 
@@ -319,7 +322,12 @@ final class MessagesAudioRecorder: NSObject, MessagesVoiceRecorder, @unchecked S
 actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
     private static let maxHistoryMessages = 8
     private static let requestTimeout: TimeInterval = 180
-    private static let pollInterval: TimeInterval = 1.0
+
+    // Exponential backoff parameters for job-status polling.
+    private static let pollInitialInterval: TimeInterval = 0.5
+    private static let pollMaxInterval: TimeInterval = 8.0
+    private static let pollBackoffFactor: Double = 2.0
+    private static let pollJitterFraction: Double = 0.1
 
     private let configuration: VoiceChatBackendConfiguration
     private let sessionToken: String?
@@ -370,6 +378,7 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         if let sessionToken {
             request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
         }
+        configuration.decorate(&request)
         request.httpBody = try encoder.encode(requestBody)
 
         let data: Data
@@ -414,6 +423,7 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
 
     private func pollForCompletedJob(jobID: String) async throws -> MessagesTurnResult {
         let deadline = Date().addingTimeInterval(Self.requestTimeout)
+        var pollInterval = Self.pollInitialInterval
 
         while Date() < deadline {
             var request = URLRequest(url: configuration.voiceJobStatusURL(jobID: jobID))
@@ -422,6 +432,7 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
             if let sessionToken {
                 request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
             }
+            configuration.decorate(&request)
 
             let data: Data
             let response: URLResponse
@@ -437,7 +448,11 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
             let decoded = try decoder.decode(MessagesBackendVoiceJobStatusResponse.self, from: data)
             switch decoded.stage {
             case "queued", "transcribing", "generating", "synthesizing":
-                try await Task.sleep(nanoseconds: UInt64(Self.pollInterval * 1_000_000_000))
+                // Exponential backoff with ±10 % jitter to spread polling load.
+                let jitter = pollInterval * Self.pollJitterFraction * Double.random(in: -1 ... 1)
+                let sleepSeconds = max(Self.pollInitialInterval, min(Self.pollMaxInterval, pollInterval + jitter))
+                try await Task.sleep(nanoseconds: UInt64(sleepSeconds * 1_000_000_000))
+                pollInterval = min(Self.pollMaxInterval, pollInterval * Self.pollBackoffFactor)
             case "failed":
                 throw MessagesVoiceChatError.backendFailed(
                     message: decoded.error ?? String(localized: AppStrings.messagesBackendFailedBody)
