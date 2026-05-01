@@ -12,6 +12,8 @@ struct VoiceScreen: View {
     @ObservedObject var viewModel: PrototypeVoiceViewModel
     @Environment(\.designSystem) private var designSystem
 
+    private let contentMaxWidth: CGFloat = 320
+
     private var titleColor: Color { designSystem.colors.textPrimary }
     private var subtitleColor: Color { designSystem.colors.textSecondary }
     private var quoteColor: Color { designSystem.colors.accentQuote }
@@ -55,12 +57,12 @@ struct VoiceScreen: View {
                     controlsSection
                         .padding(.top, 40)
                 }
-                .frame(maxWidth: 345)
+                .frame(maxWidth: contentMaxWidth)
                 .frame(maxWidth: .infinity)
 
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, designSystem.spacing.voiceScreenInset)
+            .padding(.horizontal, designSystem.spacing.xl)
             .padding(.bottom, designSystem.spacing.voiceScreenInset)
         }
         .alert(item: $viewModel.alert) { message in
@@ -81,6 +83,7 @@ struct VoiceScreen: View {
                 .multilineTextAlignment(.center)
                 .foregroundStyle(titleColor)
                 .fixedSize(horizontal: false, vertical: true)
+                .minimumScaleFactor(0.88)
                 .frame(maxWidth: .infinity)
 
             Text(viewModel.subtitle)
@@ -88,9 +91,10 @@ struct VoiceScreen: View {
                 .foregroundStyle(subtitleColor)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+                .minimumScaleFactor(0.92)
                 .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, 39)
+        .padding(.horizontal, designSystem.spacing.lg)
     }
 
     private var quoteSection: some View {
@@ -100,7 +104,7 @@ struct VoiceScreen: View {
             .multilineTextAlignment(.center)
             .lineSpacing(8)
             .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: 345)
+            .minimumScaleFactor(0.9)
             .frame(maxWidth: .infinity)
     }
 
@@ -123,6 +127,7 @@ struct VoiceScreen: View {
                     .foregroundStyle(subtitleColor)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+                    .minimumScaleFactor(0.9)
                     .frame(maxWidth: .infinity)
             case .complete:
                 if viewModel.isTraining {
