@@ -101,6 +101,23 @@
 "prototype.provider.sign_out_failed_title" = "Couldn’t sign out";
 "prototype.provider.sign_out_failed_body" = "Try again after the backend is running.";
 "prototype.provider.open" = "Provider Settings";
+"prototype.two_factor.title" = "Authenticator 2FA";
+"prototype.two_factor.subtitle" = "Protect sensitive account actions with a free, self-hosted authenticator app flow.";
+"prototype.two_factor.enable" = "Enable 2FA";
+"prototype.two_factor.disable" = "Disable 2FA";
+"prototype.two_factor.setup_title" = "Scan this code in your phone authenticator app, then enter the 6-digit code to finish setup.";
+"prototype.two_factor.setup_body" = "Any RFC 6238 app works, including 2FAS, Google Authenticator, or Authy.";
+"prototype.two_factor.manual_key" = "Manual setup key";
+"prototype.two_factor.code" = "6-digit code";
+"prototype.two_factor.confirm" = "Confirm Setup";
+"prototype.two_factor.verify" = "Verify Code";
+"prototype.two_factor.enabled" = "Authenticator 2FA is enabled for this account on this device.";
+"prototype.two_factor.verification_required" = "Verify your 2FA code before saving provider changes or signing out.";
+"prototype.two_factor.verification_passed" = "2FA verified for this session.";
+"prototype.two_factor.enrollment_confirmed" = "Authenticator 2FA is enabled.";
+"prototype.two_factor.disabled" = "Authenticator 2FA disabled for this account on this device.";
+"prototype.two_factor.unavailable" = "Two-factor authentication is not available for this account yet.";
+"prototype.two_factor.invalid_code" = "The code is invalid or expired. Try the current code from your authenticator app.";
 
 "prototype.identity.born_on_pika" = "BORN ON PIKA";
 "prototype.identity.birth_date" = "FEB 11, 2026";

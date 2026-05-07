@@ -44,7 +44,8 @@ enum ImportedAsset: String {
     }
 
     var bundlePath: String? {
-        Bundle.main.path(forResource: resourceName, ofType: fileExtension, inDirectory: "ImportedAssets")
+        guard !isDisabledForTests else { return nil }
+        return Bundle.main.path(forResource: resourceName, ofType: fileExtension, inDirectory: "ImportedAssets")
     }
 
     var existsInBundle: Bool {
@@ -54,6 +55,10 @@ enum ImportedAsset: String {
 
     var isSVG: Bool {
         fileExtension.lowercased() == "svg"
+    }
+
+    private var isDisabledForTests: Bool {
+        ProcessInfo.processInfo.environment["PIKA_DISABLE_IMPORTED_ASSETS"] == "1"
     }
 }
 

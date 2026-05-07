@@ -31,11 +31,17 @@
 		1D94B0F92F90A82F00373810 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B0F82F90A82F00373810 /* Localizable.strings */; };
 		1D94B1002F90A82F00373810 /* ImportedAssets in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B1012F90A82F00373810 /* ImportedAssets */; };
 		4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1D10052B23000100FACE01 /* AudioChunking.swift */; };
+		4C1D10072B23000100FACE01 /* PikaBackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1D10082B23000100FACE01 /* PikaBackendConfiguration.swift */; };
 		A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */; };
 		A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */; };
 		5E0000010000000000FACE01 /* PikaKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0000000000000000FACE01 /* PikaKit.swift */; };
 		5E0000030000000000FACE01 /* PikaKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0000020000000000FACE01 /* PikaKitTests.swift */; };
 		6F4A00012C21000100FACE01 /* FeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F4A00002C21000100FACE01 /* FeatureFlags.swift */; };
+		7A1000022D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1000012D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift */; };
+		7A1000042D01000100FACE01 /* PrototypeSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1000032D01000100FACE01 /* PrototypeSnapshotTests.swift */; };
+		7A1000062D01000100FACE01 /* AuthConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1000052D01000100FACE01 /* AuthConfigurationTests.swift */; };
+		7A10000B2D01000100FACE01 /* SwiftOTP in Frameworks */ = {isa = PBXBuildFile; productRef = 7A1000092D01000100FACE01 /* SwiftOTP */; };
+		7A10000C2D01000100FACE01 /* iOSSnapshotTestCase in Frameworks */ = {isa = PBXBuildFile; productRef = 7A10000A2D01000100FACE01 /* iOSSnapshotTestCase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -65,11 +71,15 @@
 		1D94B0F82F90A82F00373810 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
 		1D94B1012F90A82F00373810 /* ImportedAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ImportedAssets; sourceTree = "<group>"; };
 		4C1D10052B23000100FACE01 /* AudioChunking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChunking.swift; sourceTree = "<group>"; };
+		4C1D10082B23000100FACE01 /* PikaBackendConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaBackendConfiguration.swift; sourceTree = "<group>"; };
 		A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesViewModel.swift; sourceTree = "<group>"; };
 		A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesScreen.swift; sourceTree = "<group>"; };
 		5E0000000000000000FACE01 /* PikaKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaKit.swift; sourceTree = "<group>"; };
 		5E0000020000000000FACE01 /* PikaKitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaKitTests.swift; sourceTree = "<group>"; };
 		6F4A00002C21000100FACE01 /* FeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlags.swift; sourceTree = "<group>"; };
+		7A1000012D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeAuthenticatorTwoFactorService.swift; sourceTree = "<group>"; };
+		7A1000032D01000100FACE01 /* PrototypeSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeSnapshotTests.swift; sourceTree = "<group>"; };
+		7A1000052D01000100FACE01 /* AuthConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfigurationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +97,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A10000B2D01000100FACE01 /* SwiftOTP in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7A10000C2D01000100FACE01 /* iOSSnapshotTestCase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -124,6 +136,8 @@
 			children = (
 				2B7F10042A00000100FACE01 /* SelfieAvatarPipelineTests.swift */,
 				5E0000020000000000FACE01 /* PikaKitTests.swift */,
+				7A1000032D01000100FACE01 /* PrototypeSnapshotTests.swift */,
+				7A1000052D01000100FACE01 /* AuthConfigurationTests.swift */,
 			);
 			path = PikaTakeHomeTests;
 			sourceTree = "<group>";
@@ -184,6 +198,8 @@
 			isa = PBXGroup;
 			children = (
 				4C1D10052B23000100FACE01 /* AudioChunking.swift */,
+				4C1D10082B23000100FACE01 /* PikaBackendConfiguration.swift */,
+				7A1000012D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -241,6 +257,9 @@
 			dependencies = (
 			);
 			name = PikaTakeHome;
+			packageProductDependencies = (
+				7A1000092D01000100FACE01 /* SwiftOTP */,
+			);
 			productName = PikaTakeHome;
 			productReference = 1A1A1A1A1A1A1A1A1A1A1A10 /* PikaTakeHome.app */;
 			productType = "com.apple.product-type.application";
@@ -259,6 +278,9 @@
 				2B7F100C2A00000100FACE01 /* PBXTargetDependency */,
 			);
 			name = PikaTakeHomeTests;
+			packageProductDependencies = (
+				7A10000A2D01000100FACE01 /* iOSSnapshotTestCase */,
+			);
 			productName = PikaTakeHomeTests;
 			productReference = 2B7F10032A00000100FACE01 /* PikaTakeHomeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -288,6 +310,10 @@
 			productRefGroup = 1A1A1A1A1A1A1A1A1A1A1A17 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				7A1000072D01000100FACE01 /* XCRemoteSwiftPackageReference "SwiftOTP" */,
+				7A1000082D01000100FACE01 /* XCRemoteSwiftPackageReference "ios-snapshot-test-case" */,
+			);
 			targets = (
 				1A1A1A1A1A1A1A1A1A1A1A40 /* PikaTakeHome */,
 				2B7F10072A00000100FACE01 /* PikaTakeHomeTests */,
@@ -334,6 +360,8 @@
 				1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */,
 				4C1D10012B22000100FACE01 /* PrototypeProviderSettingsViewModel.swift in Sources */,
 				4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */,
+				4C1D10072B23000100FACE01 /* PikaBackendConfiguration.swift in Sources */,
+				7A1000022D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift in Sources */,
 				1D94B0DF2F908CD600373810 /* PrototypeFlowModels.swift in Sources */,
 				A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */,
 				4C1D10032B22000100FACE01 /* ProviderSettingsScreen.swift in Sources */,
@@ -353,6 +381,8 @@
 			files = (
 				2B7F10052A00000100FACE01 /* SelfieAvatarPipelineTests.swift in Sources */,
 				5E0000030000000000FACE01 /* PikaKitTests.swift in Sources */,
+				7A1000042D01000100FACE01 /* PrototypeSnapshotTests.swift in Sources */,
+				7A1000062D01000100FACE01 /* AuthConfigurationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -574,6 +604,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7A1000072D01000100FACE01 /* XCRemoteSwiftPackageReference "SwiftOTP" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/lachlanbell/SwiftOTP.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+		7A1000082D01000100FACE01 /* XCRemoteSwiftPackageReference "ios-snapshot-test-case" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/uber/ios-snapshot-test-case.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7A1000092D01000100FACE01 /* SwiftOTP */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7A1000072D01000100FACE01 /* XCRemoteSwiftPackageReference "SwiftOTP" */;
+			productName = SwiftOTP;
+		};
+		7A10000A2D01000100FACE01 /* iOSSnapshotTestCase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7A1000082D01000100FACE01 /* XCRemoteSwiftPackageReference "ios-snapshot-test-case" */;
+			productName = iOSSnapshotTestCase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1A1A1A1A1A1A1A1A1A1A1A60 /* Project object */;
 }

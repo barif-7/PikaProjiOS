@@ -140,6 +140,23 @@ enum AppStrings {
     static let providerSettingsSignOutFailedTitle = LocalizedStringResource("prototype.provider.sign_out_failed_title")
     static let providerSettingsSignOutFailedBody = LocalizedStringResource("prototype.provider.sign_out_failed_body")
     static let providerSettingsOpen = LocalizedStringResource("prototype.provider.open")
+    static let twoFactorTitle = LocalizedStringResource("prototype.two_factor.title")
+    static let twoFactorSubtitle = LocalizedStringResource("prototype.two_factor.subtitle")
+    static let twoFactorEnable = LocalizedStringResource("prototype.two_factor.enable")
+    static let twoFactorDisable = LocalizedStringResource("prototype.two_factor.disable")
+    static let twoFactorSetupTitle = LocalizedStringResource("prototype.two_factor.setup_title")
+    static let twoFactorSetupBody = LocalizedStringResource("prototype.two_factor.setup_body")
+    static let twoFactorManualKey = LocalizedStringResource("prototype.two_factor.manual_key")
+    static let twoFactorCode = LocalizedStringResource("prototype.two_factor.code")
+    static let twoFactorConfirm = LocalizedStringResource("prototype.two_factor.confirm")
+    static let twoFactorVerify = LocalizedStringResource("prototype.two_factor.verify")
+    static let twoFactorEnabled = LocalizedStringResource("prototype.two_factor.enabled")
+    static let twoFactorVerificationRequired = LocalizedStringResource("prototype.two_factor.verification_required")
+    static let twoFactorVerificationPassed = LocalizedStringResource("prototype.two_factor.verification_passed")
+    static let twoFactorEnrollmentConfirmed = LocalizedStringResource("prototype.two_factor.enrollment_confirmed")
+    static let twoFactorDisabled = LocalizedStringResource("prototype.two_factor.disabled")
+    static let twoFactorUnavailable = LocalizedStringResource("prototype.two_factor.unavailable")
+    static let twoFactorInvalidCode = LocalizedStringResource("prototype.two_factor.invalid_code")
 
     static let identityBornOnPika = LocalizedStringResource("prototype.identity.born_on_pika")
     static let identityBirthDate = LocalizedStringResource("prototype.identity.birth_date")
@@ -322,34 +339,34 @@ struct AuthBackendConfiguration {
 
     static func load(
         bundle: Bundle = .main,
-        processInfo: ProcessInfo = .processInfo
+        environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> AuthBackendConfiguration? {
-        let callbackScheme = processInfo.environment["AUTH_REDIRECT_SCHEME"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let callbackScheme = environment["AUTH_REDIRECT_SCHEME"]?.trimmingCharacters(in: .whitespacesAndNewlines)
             ?? (bundle.object(forInfoDictionaryKey: "AuthRedirectScheme") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
             ?? "pikatakehome"
 
-        let environmentValue = processInfo.environment["AUTH_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let environmentValue = environment["AUTH_BASE_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let environmentValue, !environmentValue.isEmpty, let url = URL(string: environmentValue) {
-            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            let callbackURL = loadCallbackURL(bundle: bundle, environment: environment)
             return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         let plistAuthValue = (bundle.object(forInfoDictionaryKey: "AuthBaseURL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let plistAuthValue, !plistAuthValue.isEmpty, let url = URL(string: plistAuthValue) {
-            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            let callbackURL = loadCallbackURL(bundle: bundle, environment: environment)
             return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         let plistChatValue = (bundle.object(forInfoDictionaryKey: "VoiceChatBaseURL") as? String)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if let plistChatValue, !plistChatValue.isEmpty, let url = URL(string: plistChatValue) {
-            let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+            let callbackURL = loadCallbackURL(bundle: bundle, environment: environment)
             return AuthBackendConfiguration(baseURL: url, callbackScheme: callbackScheme, callbackURL: callbackURL)
         }
 
         #if targetEnvironment(simulator)
-        let callbackURL = loadCallbackURL(bundle: bundle, processInfo: processInfo)
+        let callbackURL = loadCallbackURL(bundle: bundle, environment: environment)
         return AuthBackendConfiguration(baseURL: simulatorDefaultBaseURL, callbackScheme: callbackScheme, callbackURL: callbackURL)
         #else
         return nil
@@ -358,9 +375,9 @@ struct AuthBackendConfiguration {
 
     private static func loadCallbackURL(
         bundle: Bundle,
-        processInfo: ProcessInfo
+        environment: [String: String]
     ) -> URL? {
-        let environmentValue = processInfo.environment["AUTH_REDIRECT_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let environmentValue = environment["AUTH_REDIRECT_URL"]?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let environmentValue, !environmentValue.isEmpty {
             return URL(string: environmentValue)
         }

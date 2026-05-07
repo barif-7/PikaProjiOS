@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// Settings screen for connecting the backend to an Ollama provider.
 struct ProviderSettingsScreen: View {
@@ -87,6 +88,10 @@ struct ProviderSettingsScreen: View {
                                 )
                         }
 
+                        if viewModel.isSignedIn {
+                            twoFactorSection
+                        }
+
                         if viewModel.isLoading {
                             HStack(spacing: 10) {
                                 ProgressView()
@@ -153,6 +158,132 @@ struct ProviderSettingsScreen: View {
         }
     }
 
+    private var twoFactorSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(AppStrings.twoFactorTitle)
+                .font(designSystem.fonts.telka(13, weight: .medium))
+                .foregroundStyle(designSystem.colors.textSecondary)
+
+            VStack(alignment: .leading, spacing: 14) {
+                Text(AppStrings.twoFactorSubtitle)
+                    .font(designSystem.fonts.telka(14))
+                    .foregroundStyle(designSystem.colors.textSecondary)
+
+                if viewModel.isEnrollingTwoFactor {
+                    Text(AppStrings.twoFactorSetupTitle)
+                        .font(designSystem.fonts.telka(14, weight: .medium))
+                        .foregroundStyle(designSystem.colors.textPrimary)
+
+                    Text(AppStrings.twoFactorSetupBody)
+                        .font(designSystem.fonts.telka(13))
+                        .foregroundStyle(designSystem.colors.textSecondary)
+
+                    if let qrCodeImage = viewModel.twoFactorQRCodeImage {
+                        Image(uiImage: qrCodeImage)
+                            .interpolation(.none)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 180, height: 180)
+                            .padding(12)
+                            .background(Color.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    }
+
+                    if let manualEntryKey = viewModel.twoFactorManualEntryKey {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(AppStrings.twoFactorManualKey)
+                                .font(designSystem.fonts.telka(13, weight: .medium))
+                                .foregroundStyle(designSystem.colors.textSecondary)
+
+                            Text(manualEntryKey)
+                                .font(.system(.body, design: .monospaced))
+                                .foregroundStyle(designSystem.colors.textPrimary)
+                                .textSelection(.enabled)
+                        }
+                    }
+                } else if viewModel.isTwoFactorEnabled {
+                    Text(AppStrings.twoFactorEnabled)
+                        .font(designSystem.fonts.telka(14))
+                        .foregroundStyle(designSystem.colors.textPrimary)
+
+                    if !viewModel.isTwoFactorVerified {
+                        Text(AppStrings.twoFactorVerificationRequired)
+                            .font(designSystem.fonts.telka(13))
+                            .foregroundStyle(designSystem.colors.textSecondary)
+                    }
+                }
+
+                if viewModel.isEnrollingTwoFactor || viewModel.isTwoFactorEnabled {
+                    providerField(
+                        title: AppStrings.twoFactorCode,
+                        text: $viewModel.twoFactorCode,
+                        keyboardType: .numberPad
+                    )
+                }
+
+                if let statusText = viewModel.twoFactorStatusText {
+                    Text(statusText)
+                        .font(designSystem.fonts.telka(13, weight: .medium))
+                        .foregroundStyle(designSystem.colors.accentQuote)
+                }
+
+                HStack(spacing: 12) {
+                    if !viewModel.isTwoFactorEnabled && !viewModel.isEnrollingTwoFactor {
+                        actionButton(title: AppStrings.twoFactorEnable) {
+                            viewModel.enableTwoFactorTapped()
+                        }
+                    } else if viewModel.isEnrollingTwoFactor {
+                        actionButton(
+                            title: AppStrings.twoFactorConfirm,
+                            enabled: viewModel.canSubmitTwoFactorCode
+                        ) {
+                            viewModel.confirmTwoFactorTapped()
+                        }
+                    } else {
+                        actionButton(
+                            title: AppStrings.twoFactorVerify,
+                            enabled: viewModel.canSubmitTwoFactorCode && !viewModel.isTwoFactorVerified
+                        ) {
+                            viewModel.verifyTwoFactorTapped()
+                        }
+
+                        actionButton(title: AppStrings.twoFactorDisable) {
+                            viewModel.disableTwoFactorTapped()
+                        }
+                    }
+                }
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.white.opacity(0.62), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func actionButton(
+        title: LocalizedStringResource,
+        enabled: Bool = true,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(designSystem.fonts.telka(14, weight: .black))
+                .foregroundStyle(designSystem.colors.textPrimary)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(Color.white.opacity(enabled ? 0.7 : 0.35), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+    }
+
     @ViewBuilder
     private func providerField(
         title: LocalizedStringResource,
@@ -173,6 +304,15 @@ struct ProviderSettingsScreen: View {
                         .keyboardType(keyboardType)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
+                }
+            }
+            .onChange(of: text.wrappedValue) { _, newValue in
+                if keyboardType == .numberPad {
+                    let digitsOnly = newValue.filter(\.isNumber)
+                    let limited = String(digitsOnly.prefix(6))
+                    if limited != newValue {
+                        text.wrappedValue = limited
+                    }
                 }
             }
             .font(designSystem.fonts.telka(16))

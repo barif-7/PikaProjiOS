@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import UIKit
 
 /// Editable Ollama provider connection shown in settings.
 struct PrototypeOllamaConnection: Equatable {
@@ -203,6 +204,13 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     @Published private(set) var isSaving = false
     @Published private(set) var isSigningOut = false
     @Published private(set) var statusText: String?
+    @Published var twoFactorCode = ""
+    @Published private(set) var isTwoFactorEnabled = false
+    @Published private(set) var isTwoFactorVerified = false
+    @Published private(set) var isEnrollingTwoFactor = false
+    @Published private(set) var twoFactorManualEntryKey: String?
+    @Published private(set) var twoFactorQRCodeImage: UIImage?
+    @Published private(set) var twoFactorStatusText: String?
     @Published var alert: PrototypeCameraAlert?
 
     var onBackRequested: (() -> Void)?
@@ -210,6 +218,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
 
     private let appSessionStore: PrototypeProviderSettingsSessionStoring
     private let authService: PrototypeGoogleAuthenticating?
+    private let twoFactorService: PrototypeTwoFactorServicing
     private let serviceBuilder: PrototypeProviderConnectionServiceBuilding
     private let authConfiguration: AuthBackendConfiguration?
     private var service: PrototypeProviderConnectionServicing?
@@ -223,6 +232,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         service: PrototypeProviderConnectionServicing? = nil,
         appSessionStore: PrototypeProviderSettingsSessionStoring? = nil,
         authService: PrototypeGoogleAuthenticating? = nil,
+        twoFactorService: PrototypeTwoFactorServicing = PrototypeTwoFactorServiceFactory.makeDefault(),
         serviceBuilder: PrototypeProviderConnectionServiceBuilding = PrototypeProviderConnectionServiceFactory(),
         authConfiguration: AuthBackendConfiguration? = AuthBackendConfiguration.load()
     ) {
@@ -230,6 +240,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
 
         self.appSessionStore = resolvedAppSessionStore
         self.authService = authService ?? PrototypeGoogleAuthServiceFactory.makeDefault()
+        self.twoFactorService = twoFactorService
         self.serviceBuilder = serviceBuilder
         self.authConfiguration = authConfiguration
         self.session = resolvedAppSessionStore.currentSession
@@ -252,11 +263,22 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     }
 
     var canSave: Bool {
-        !isSaving && !endpointURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && isSignedIn
+        !isSaving
+            && !endpointURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && isSignedIn
+            && isTwoFactorSatisfied
     }
 
     var canSignOut: Bool {
-        !isSaving && !isSigningOut && isSignedIn
+        !isSaving && !isSigningOut && isSignedIn && isTwoFactorSatisfied
+    }
+
+    var canSubmitTwoFactorCode: Bool {
+        !twoFactorCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var isTwoFactorSatisfied: Bool {
+        !isTwoFactorEnabled || isTwoFactorVerified
     }
 
     func save() async {
@@ -304,6 +326,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         guard !hasLoaded else { return }
         hasLoaded = true
         refreshSession()
+        refreshTwoFactorState()
         guard let service else {
             statusText = String(localized: AppStrings.providerSettingsSignedOut)
             return
@@ -344,12 +367,86 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         }
     }
 
+    func enableTwoFactorTapped() {
+        guard let user = session?.user else { return }
+        do {
+            let status = try twoFactorService.beginEnrollment(for: user)
+            applyTwoFactorStatus(status)
+            isTwoFactorVerified = false
+            twoFactorCode = ""
+            twoFactorStatusText = nil
+        } catch {
+            presentTwoFactorError(error)
+        }
+    }
+
+    func confirmTwoFactorTapped() {
+        guard let user = session?.user else { return }
+        do {
+            let status = try twoFactorService.confirmEnrollment(
+                code: twoFactorCode,
+                for: user
+            )
+            applyTwoFactorStatus(status)
+            isTwoFactorVerified = true
+            twoFactorCode = ""
+            twoFactorStatusText = String(localized: AppStrings.twoFactorEnrollmentConfirmed)
+        } catch {
+            presentTwoFactorError(error)
+        }
+    }
+
+    func verifyTwoFactorTapped() {
+        guard let user = session?.user else { return }
+        do {
+            try twoFactorService.verify(code: twoFactorCode, for: user)
+            isTwoFactorVerified = true
+            twoFactorCode = ""
+            twoFactorStatusText = String(localized: AppStrings.twoFactorVerificationPassed)
+        } catch {
+            presentTwoFactorError(error)
+        }
+    }
+
+    func disableTwoFactorTapped() {
+        guard let user = session?.user else { return }
+        twoFactorService.disable(for: user)
+        refreshTwoFactorState()
+        twoFactorCode = ""
+        isTwoFactorVerified = false
+        twoFactorStatusText = String(localized: AppStrings.twoFactorDisabled)
+    }
+
     private func refreshSession() {
         session = appSessionStore.currentSession
         service = serviceBuilder.makeService(
             appSessionStore: appSessionStore,
             authConfiguration: authConfiguration
         )
+    }
+
+    private func refreshTwoFactorState() {
+        let status = twoFactorService.status(for: session?.user)
+        applyTwoFactorStatus(status)
+        if !status.isEnabled {
+            isTwoFactorVerified = false
+        }
+    }
+
+    private func applyTwoFactorStatus(_ status: PrototypeTwoFactorStatus) {
+        isTwoFactorEnabled = status.isEnabled
+        isEnrollingTwoFactor = !status.isEnabled && status.manualEntryKey != nil
+        twoFactorManualEntryKey = status.manualEntryKey
+        twoFactorQRCodeImage = status.qrCodeImage
+        if !status.isEnabled {
+            twoFactorStatusText = twoFactorStatusText?.nilIfBlank
+        }
+    }
+
+    private func presentTwoFactorError(_ error: Error) {
+        twoFactorStatusText = error.localizedDescription.isEmpty
+            ? String(localized: AppStrings.twoFactorInvalidCode)
+            : error.localizedDescription
     }
 
     private func clearSignedInState() {
@@ -359,6 +456,13 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         model = ""
         apiToken = ""
         label = ""
+        twoFactorCode = ""
+        isTwoFactorEnabled = false
+        isTwoFactorVerified = false
+        isEnrollingTwoFactor = false
+        twoFactorManualEntryKey = nil
+        twoFactorQRCodeImage = nil
+        twoFactorStatusText = nil
         hasLoaded = true
     }
 }
