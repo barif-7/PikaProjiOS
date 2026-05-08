@@ -199,7 +199,8 @@ final class PrototypeCoordinator: ObservableObject {
 
     // Creates the messages view model and binds navigation into settings.
     private func makeMessagesViewModel() -> PrototypeMessagesViewModel {
-        let viewModel = PrototypeMessagesViewModel(featureFlags: featureFlags)
+        let savedAvatar = sessionStore.loadAvatarImage()
+        let viewModel = PrototypeMessagesViewModel(avatarImage: savedAvatar, featureFlags: featureFlags)
         viewModel.onBackRequested = { [weak self] in
             self?.showSuccess()
         }
@@ -248,7 +249,7 @@ final class PrototypeCoordinator: ObservableObject {
     // Propagates the generated avatar into downstream screens before entering the voice step.
     private func showVoicePrompt() {
         let generatedAvatar = cameraViewModel.generatedAvatarImage
-        
+        sessionStore.saveAvatarImage(generatedAvatar)
         voiceViewModel.setAvatarImage(generatedAvatar)
         successViewModel.setAvatarImage(generatedAvatar)
         messagesViewModel.setAvatarImage(generatedAvatar)
@@ -316,6 +317,7 @@ final class PrototypeCoordinator: ObservableObject {
         if isUpdatingAvatarFromMessages {
             isUpdatingAvatarFromMessages = false
             let generatedAvatar = cameraViewModel.generatedAvatarImage
+            sessionStore.saveAvatarImage(generatedAvatar)
             voiceViewModel.setAvatarImage(generatedAvatar)
             successViewModel.setAvatarImage(generatedAvatar)
             messagesViewModel.setAvatarImage(generatedAvatar)
@@ -362,7 +364,6 @@ final class PrototypeCoordinator: ObservableObject {
     }
 
     private func showProviderSettings() {
-        guard featureFlags.isEnabled(.enableVoiceChat) else { return }
         route = .providerSettings
     }
 
@@ -378,6 +379,9 @@ final class PrototypeCoordinator: ObservableObject {
         voiceViewModel.reset()
         successViewModel.setAvatarImage(nil)
         messagesViewModel.reset()
+        if let savedAvatar = sessionStore.loadAvatarImage() {
+            messagesViewModel.setAvatarImage(savedAvatar)
+        }
     }
 
     private static func defaultRoute(for sessionState: PrototypeSessionState) -> PrototypeRoute {
@@ -388,12 +392,15 @@ final class PrototypeCoordinator: ObservableObject {
     }
 
     private func handleSignOut() {
+        sessionStore.saveAvatarImage(nil)
+        sessionStore.saveVoiceProfileID(nil)
         refreshAuthenticatedDependencies()
         route = .welcome
         welcomeViewModel.reset(phoneNumber: sessionStore.state.phoneNumber)
     }
 
     private func handleAccountDeleted() {
+        sessionStore.saveAvatarImage(nil)
         refreshAuthenticatedDependencies()
         sessionStore.saveVoiceProfileID(nil)
         route = .welcome

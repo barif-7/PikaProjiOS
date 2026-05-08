@@ -191,7 +191,7 @@ final class PrototypeAuthenticatorTwoFactorService: PrototypeTwoFactorServicing 
     private static func generateSecret(length: Int) -> String {
         let alphabet = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")
         var generator = SystemRandomNumberGenerator()
-        return String((0 ..< length).map { _ in alphabet.randomElement(using: &generator)! })
+        return String((0 ..< length).map { _ in alphabet.randomElement(using: &generator) ?? "A" })
     }
 }
 

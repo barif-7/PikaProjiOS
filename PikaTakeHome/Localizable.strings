@@ -94,6 +94,7 @@
 "prototype.provider.saved" = "Provider settings saved.";
 "prototype.provider.sign_out" = "Sign Out";
 "prototype.provider.signed_out_status" = "Signed out. Provider settings now fall back to the shared backend defaults.";
+"prototype.provider.loading" = "Loading provider settings…";
 "prototype.provider.load_failed_title" = "Couldn’t load provider settings";
 "prototype.provider.load_failed_body" = "Try again after the backend is running and you’re signed in.";
 "prototype.provider.save_failed_title" = "Couldn’t save provider settings";

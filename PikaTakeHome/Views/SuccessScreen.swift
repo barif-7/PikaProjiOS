@@ -6,11 +6,14 @@
 //
 
 import SwiftUI
+import UIKit
 
 /// Completion screen that presents the generated AI-self card and next actions.
 struct SuccessScreen: View {
     @ObservedObject var viewModel: PrototypeSuccessViewModel
     @Environment(\.designSystem) private var designSystem
+    @State private var shareItems: [Any] = []
+    @State private var showShareSheet = false
 
     var body: some View {
         GeometryReader { proxy in
@@ -101,8 +104,9 @@ struct SuccessScreen: View {
                             height: designSystem.controlSize.secondaryButtonHeight,
                             action: { viewModel.openMessagesTapped() }
                         )
-                        // TODO: Wire up share-ID-card flow when the share sheet is implemented.
-                        SecondaryButton(title: AppStrings.successShareIDCard, trailingAsset: .shareIcon, action: {})
+                        SecondaryButton(title: AppStrings.successShareIDCard, trailingAsset: .shareIcon) {
+                            shareIDCard()
+                        }
                     }
                     .padding(.horizontal, horizontalPadding)
                     .padding(.bottom, bottomPadding)
@@ -111,5 +115,53 @@ struct SuccessScreen: View {
             }
             .frame(width: size.width, height: size.height)
         }
+        .sheet(isPresented: $showShareSheet) {
+            ActivityShareSheet(items: shareItems)
+        }
     }
+
+    private func shareIDCard() {
+        let renderer = ImageRenderer(
+            content: IdentityCardView(card: viewModel.identityCard)
+                .frame(width: 360)
+                .padding(24)
+                .background(Color(UIColor.systemBackground))
+        )
+        renderer.scale = 3.0
+
+        var items: [Any] = []
+        if let image = renderer.uiImage {
+            items.append(image)
+        }
+
+        let rawLink = String(localized: AppStrings.identityProfileLink).lowercased()
+        let urlString = rawLink.hasPrefix("http") ? rawLink : "https://\(rawLink)"
+        if let url = URL(string: urlString) {
+            items.append(url)
+        }
+
+        guard !items.isEmpty else { return }
+        shareItems = items
+        showShareSheet = true
+    }
+}
+
+private struct ActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let vc = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        // Required for iPad — point at the centre of the key window as a safe fallback.
+        if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+           let window = scene.windows.first(where: \.isKeyWindow) {
+            vc.popoverPresentationController?.sourceView = window
+            vc.popoverPresentationController?.sourceRect = CGRect(
+                x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0
+            )
+            vc.popoverPresentationController?.permittedArrowDirections = []
+        }
+        return vc
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }

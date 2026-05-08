@@ -69,6 +69,40 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
     }
 
     @MainActor
+    func testMessagesScreen() {
+        let viewModel = PrototypeMessagesViewModel(
+            avatarImage: Self.makeAvatarImage(),
+            featureFlags: FeatureFlagManager(overrides: [:])
+        )
+        verifySnapshot(
+            view: MessagesScreen(viewModel: viewModel),
+            identifier: "messages"
+        )
+    }
+
+    @MainActor
+    func testVoiceScreenPrompt() {
+        let viewModel = PrototypeVoiceViewModel(
+            featureFlags: FeatureFlagManager(overrides: [:])
+        )
+        viewModel.setAvatarImage(Self.makeAvatarImage())
+        verifySnapshot(
+            view: VoiceScreen(viewModel: viewModel),
+            identifier: "voice-prompt"
+        )
+    }
+
+    @MainActor
+    func testSuccessScreen() {
+        let viewModel = PrototypeSuccessViewModel()
+        viewModel.setAvatarImage(Self.makeAvatarImage())
+        verifySnapshot(
+            view: SuccessScreen(viewModel: viewModel),
+            identifier: "success"
+        )
+    }
+
+    @MainActor
     func testProviderSettingsScreenWithTwoFactorEnrollment() async {
         let sessionStore = SnapshotSessionStore(
             session: PrototypeAppSession(
@@ -96,7 +130,7 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
 
         verifySnapshot(
             view: ProviderSettingsScreen(viewModel: viewModel),
-            identifier: "provider-enrollment-v2"
+            identifier: "provider-enrollment-v3"
         )
     }
 
@@ -131,7 +165,7 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
 
         verifySnapshot(
             view: ProviderSettingsScreen(viewModel: viewModel),
-            identifier: "provider-verified"
+            identifier: "provider-verified-v2"
         )
     }
 
@@ -163,7 +197,7 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
 
         verifySnapshot(
             view: ProviderSettingsScreen(viewModel: viewModel),
-            identifier: "provider-signed-out"
+            identifier: "provider-signed-out-v2"
         )
     }
 

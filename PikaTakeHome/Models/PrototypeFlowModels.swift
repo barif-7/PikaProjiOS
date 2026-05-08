@@ -133,6 +133,7 @@ enum AppStrings {
     static let providerSettingsSaved = LocalizedStringResource("prototype.provider.saved")
     static let providerSettingsSignOut = LocalizedStringResource("prototype.provider.sign_out")
     static let providerSettingsSignedOutStatus = LocalizedStringResource("prototype.provider.signed_out_status")
+    static let providerSettingsLoading = LocalizedStringResource("prototype.provider.loading")
     static let providerSettingsLoadFailedTitle = LocalizedStringResource("prototype.provider.load_failed_title")
     static let providerSettingsLoadFailedBody = LocalizedStringResource("prototype.provider.load_failed_body")
     static let providerSettingsSaveFailedTitle = LocalizedStringResource("prototype.provider.save_failed_title")
@@ -238,6 +239,27 @@ final class PrototypeSessionStore {
         } else {
             defaults.removeObject(forKey: Keys.voiceProfileID)
         }
+    }
+
+    func saveAvatarImage(_ image: UIImage?) {
+        let url = Self.avatarImageURL
+        guard let image else {
+            try? FileManager.default.removeItem(at: url)
+            return
+        }
+        let data = image.resizedForConversationAvatar(maxDimension: 512)?.jpegData(compressionQuality: 0.82)
+        try? data?.write(to: url, options: .atomic)
+    }
+
+    func loadAvatarImage() -> UIImage? {
+        guard let data = try? Data(contentsOf: Self.avatarImageURL) else { return nil }
+        return UIImage(data: data)
+    }
+
+    private static var avatarImageURL: URL {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
+        return base.appendingPathComponent("session-avatar.jpg")
     }
 }
 
@@ -433,11 +455,13 @@ struct AuthBackendConfiguration {
     }
 
     func googleStartURL(mobileCallbackURL: URL) -> URL {
-        var components = URLComponents(url: baseURL.appendingPathComponent("auth/google/start"), resolvingAgainstBaseURL: false)!
+        let startURL = baseURL.appendingPathComponent("auth/google/start")
+        var components = URLComponents(url: startURL, resolvingAgainstBaseURL: false)
+            ?? URLComponents()
         components.queryItems = [
             URLQueryItem(name: "mobile_callback", value: mobileCallbackURL.absoluteString)
         ]
-        return components.url!
+        return components.url ?? startURL
     }
 }
 

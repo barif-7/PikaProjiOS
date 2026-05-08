@@ -43,8 +43,6 @@ struct VoiceScreen: View {
                 progressLine
                     .padding(.top, -24)
 
-                Spacer(minLength: 0)
-
                 VStack(spacing: 0) {
                     avatarPreview
                         .padding(.bottom, 28)
@@ -58,9 +56,7 @@ struct VoiceScreen: View {
                         .padding(.top, 40)
                 }
                 .frame(maxWidth: contentMaxWidth)
-                .frame(maxWidth: .infinity)
-
-                Spacer(minLength: 0)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
             .padding(.horizontal, designSystem.spacing.xl)
             .padding(.bottom, designSystem.spacing.voiceScreenInset)
@@ -77,7 +73,7 @@ struct VoiceScreen: View {
     }
 
     private var headerSection: some View {
-        VStack(spacing: 8) {
+        VStack(alignment: .center, spacing: 8) {
             Text(viewModel.title)
                 .font(designSystem.fonts.telka(32, weight: .black))
                 .multilineTextAlignment(.center)

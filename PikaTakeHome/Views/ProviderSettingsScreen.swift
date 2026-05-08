@@ -95,7 +95,7 @@ struct ProviderSettingsScreen: View {
                         if viewModel.isLoading {
                             HStack(spacing: 10) {
                                 ProgressView()
-                                Text("Loading provider settings...")
+                                Text(AppStrings.providerSettingsLoading)
                                     .font(designSystem.fonts.telka(13))
                                     .foregroundStyle(designSystem.colors.textSecondary)
                             }
@@ -105,24 +105,30 @@ struct ProviderSettingsScreen: View {
                                 .foregroundStyle(designSystem.colors.accentQuote)
                         }
 
-                        if viewModel.isSignedIn {
-                            Button(action: {
-                                viewModel.signOutTapped()
-                            }) {
-                                Text(AppStrings.providerSettingsSignOut)
-                                    .font(designSystem.fonts.telka(15, weight: .black))
-                                    .foregroundStyle(designSystem.colors.textPrimary)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 52)
-                                    .background(Color.white.opacity(0.58), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                            .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
-                                    )
+                        Button(action: {
+                            viewModel.signOutTapped()
+                        }) {
+                            Group {
+                                if viewModel.isSigningOut {
+                                    ProgressView()
+                                } else {
+                                    Text(AppStrings.providerSettingsSignOut)
+                                        .font(designSystem.fonts.telka(15, weight: .black))
+                                        .foregroundStyle(designSystem.colors.textPrimary)
+                                }
                             }
-                            .buttonStyle(.plain)
-                            .disabled(!viewModel.canSignOut)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 52)
+                            .background(Color.white.opacity(0.58), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(!viewModel.canSignOut)
 
+                        if viewModel.isSignedIn {
                             Button(action: {
                                 viewModel.deleteAccountTapped()
                             }) {

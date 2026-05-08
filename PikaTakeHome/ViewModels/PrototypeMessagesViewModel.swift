@@ -48,6 +48,7 @@ final class PrototypeMessagesViewModel: ObservableObject {
     let hint = AppStrings.messagesHint
 
     init(
+        avatarImage: UIImage? = nil,
         recorder: MessagesVoiceRecorder? = nil,
         chatService: MessagesVoiceChatResponding? = nil,
         conversationStore: MessagesConversationPersisting? = nil,
@@ -56,6 +57,7 @@ final class PrototypeMessagesViewModel: ObservableObject {
     ) {
         let isVoiceChatEnabled = featureFlags.isEnabled(.enableVoiceChat)
         let resolvedChatService = chatService ?? MessagesVoiceChatServiceFactory.makeDefault()
+        self.avatarImage = avatarImage
         self.recorder = recorder ?? (isVoiceChatEnabled ? MessagesAudioRecorder() : LocalDemoMessagesVoiceRecorder())
         self.chatService = resolvedChatService
         self.conversationStore = isVoiceChatEnabled
@@ -82,13 +84,8 @@ final class PrototypeMessagesViewModel: ObservableObject {
     }
 
     func reset() {
-        Task {
-            await recorder.cancel()
-        }
-        audioPlayer.stop()
+        stopActiveCall()
         avatarImage = nil
-        callState = .idle
-        statusText = String(localized: AppStrings.messagesStatusReady)
         messages = PrototypeMessagesViewModel.initialMessages
         alert = nil
         voiceProfileID = nil
@@ -97,12 +94,7 @@ final class PrototypeMessagesViewModel: ObservableObject {
     }
 
     func backTapped() {
-        Task {
-            await recorder.cancel()
-        }
-        audioPlayer.stop()
-        callState = .idle
-        statusText = String(localized: AppStrings.messagesStatusReady)
+        stopActiveCall()
         onBackRequested?()
     }
 
@@ -130,31 +122,16 @@ final class PrototypeMessagesViewModel: ObservableObject {
     }
 
     func endCallTapped() {
-        Task {
-            await recorder.cancel()
-        }
-        audioPlayer.stop()
-        callState = .idle
-        statusText = String(localized: AppStrings.messagesStatusReady)
+        stopActiveCall()
     }
 
     func retrainVoiceTapped() {
-        Task {
-            await recorder.cancel()
-        }
-        audioPlayer.stop()
-        callState = .idle
-        statusText = String(localized: AppStrings.messagesStatusReady)
+        stopActiveCall()
         onRetrainVoiceRequested?()
     }
 
     func updateAvatarTapped() {
-        Task {
-            await recorder.cancel()
-        }
-        audioPlayer.stop()
-        callState = .idle
-        statusText = String(localized: AppStrings.messagesStatusReady)
+        stopActiveCall()
         onUpdateAvatarRequested?()
     }
 
@@ -181,6 +158,15 @@ final class PrototypeMessagesViewModel: ObservableObject {
 
     var showsRetrainVoiceButton: Bool {
         featureFlags.isEnabled(.enableVoiceTraining)
+    }
+
+    private func stopActiveCall() {
+        Task {
+            await recorder.cancel()
+        }
+        audioPlayer.stop()
+        callState = .idle
+        statusText = String(localized: AppStrings.messagesStatusReady)
     }
 
     func prepareConversation() async {

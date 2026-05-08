@@ -92,7 +92,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     }
 
     var canSignOut: Bool {
-        !isSaving && !isSigningOut && !isDeleting && isSignedIn && isTwoFactorSatisfied
+        !isSaving && !isSigningOut && !isDeleting && (!isSignedIn || isTwoFactorSatisfied)
     }
 
     var canDeleteAccount: Bool {
@@ -136,15 +136,14 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     }
 
     func signOut() async {
-        guard let session else { return }
-
         isSigningOut = true
         defer { isSigningOut = false }
 
-        await authService?.signOut(sessionToken: session.sessionToken)
-        appSessionStore.clearSession()
-        clearSignedInState()
-        statusText = String(localized: AppStrings.providerSettingsSignedOutStatus)
+        if let session {
+            await authService?.signOut(sessionToken: session.sessionToken)
+            appSessionStore.clearSession()
+            clearSignedInState()
+        }
         onSignedOut?()
     }
 
@@ -236,7 +235,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         isFetchingModels = true
         defer { isFetchingModels = false }
 
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/tags"))
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/tags"), timeoutInterval: 10)
         let trimmedToken = apiToken.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedToken.isEmpty {
             request.setValue("Bearer \(trimmedToken)", forHTTPHeaderField: "Authorization")

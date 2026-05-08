@@ -26,24 +26,22 @@ struct MessagesScreen: View {
                 .padding(.horizontal, designSystem.spacing.xl)
                 .padding(.top, 20)
                 .overlay(alignment: .topTrailing) {
-                    if viewModel.showsProviderSettingsButton {
-                        Button {
-                            viewModel.openProviderSettingsTapped()
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 17, weight: .medium))
-                                .foregroundStyle(designSystem.colors.textPrimary)
-                                .frame(width: 44, height: 44)
-                                .background(designSystem.colors.surfaceChrome, in: RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous)
-                                        .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
-                                )
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.trailing, designSystem.spacing.xl)
-                        .padding(.top, 20)
+                    Button {
+                        viewModel.openProviderSettingsTapped()
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(designSystem.colors.textPrimary)
+                            .frame(width: 44, height: 44)
+                            .background(designSystem.colors.surfaceChrome, in: RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: designSystem.radius.sm, style: .continuous)
+                                    .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                            )
                     }
+                    .buttonStyle(.plain)
+                    .padding(.trailing, designSystem.spacing.xl)
+                    .padding(.top, 20)
                 }
 
                 VStack(spacing: 10) {
@@ -61,19 +59,6 @@ struct MessagesScreen: View {
                         .foregroundStyle(designSystem.colors.textSecondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, designSystem.spacing.xl)
-
-                    Button {
-                        viewModel.updateAvatarTapped()
-                    } label: {
-                        Text(String(localized: AppStrings.messagesUpdateAvatar))
-                            .font(designSystem.fonts.telka(13, weight: .medium))
-                            .foregroundStyle(designSystem.colors.accentQuote)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(Color.white.opacity(0.52), in: Capsule())
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.top, 2)
 
                     Text(viewModel.statusText)
                         .font(designSystem.fonts.telka(13, weight: .medium))
@@ -141,30 +126,45 @@ struct MessagesScreen: View {
     }
 
     private var avatarView: some View {
-        Group {
-            if let avatarImage = viewModel.avatarImage {
-                Image(uiImage: avatarImage)
-                    .resizable()
-                    .scaledToFill()
-            } else if ImportedAsset.semiPortrait.existsInBundle {
-                ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
-            } else {
+        Button {
+            viewModel.updateAvatarTapped()
+        } label: {
+            Group {
+                if let avatarImage = viewModel.avatarImage {
+                    Image(uiImage: avatarImage)
+                        .resizable()
+                        .scaledToFill()
+                } else if ImportedAsset.semiPortrait.existsInBundle {
+                    ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
+                } else {
+                    Circle()
+                        .fill(designSystem.colors.accentSecondary)
+                        .overlay {
+                            Image(systemName: "waveform.circle.fill")
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundStyle(designSystem.colors.textPrimary)
+                        }
+                }
+            }
+            .frame(width: 92, height: 92)
+            .clipShape(Circle())
+            .overlay(
                 Circle()
-                    .fill(designSystem.colors.accentSecondary)
-                    .overlay {
-                        Image(systemName: "waveform.circle.fill")
-                            .font(.system(size: 32, weight: .medium))
-                            .foregroundStyle(designSystem.colors.textPrimary)
-                    }
+                    .stroke(Color.white.opacity(0.65), lineWidth: 2)
+            )
+            .shadow(color: Color.black.opacity(0.12), radius: 18, x: 0, y: 10)
+            .overlay(alignment: .bottomTrailing) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 22, height: 22)
+                    .background(designSystem.colors.accentQuote, in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.9), lineWidth: 1.5))
+                    .shadow(color: Color.black.opacity(0.18), radius: 3, x: 0, y: 1)
+                    .offset(x: 2, y: 2)
             }
         }
-        .frame(width: 92, height: 92)
-        .clipShape(Circle())
-        .overlay(
-            Circle()
-                .stroke(Color.white.opacity(0.65), lineWidth: 2)
-        )
-        .shadow(color: Color.black.opacity(0.12), radius: 18, x: 0, y: 10)
+        .buttonStyle(.plain)
     }
 
     private func voiceBubble(_ message: PrototypeVoiceChatMessage) -> some View {
