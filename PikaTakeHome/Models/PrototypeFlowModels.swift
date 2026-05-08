@@ -158,6 +158,18 @@ enum AppStrings {
     static let twoFactorUnavailable = LocalizedStringResource("prototype.two_factor.unavailable")
     static let twoFactorInvalidCode = LocalizedStringResource("prototype.two_factor.invalid_code")
 
+    static let providerSettingsDeleteAccount = LocalizedStringResource("prototype.provider.delete_account")
+    static let providerSettingsDeleteAccountTitle = LocalizedStringResource("prototype.provider.delete_account_title")
+    static let providerSettingsDeleteAccountMessage = LocalizedStringResource("prototype.provider.delete_account_message")
+    static let providerSettingsDeleteAccountConfirm = LocalizedStringResource("prototype.provider.delete_account_confirm")
+    static let providerSettingsDeleteAccountFailedTitle = LocalizedStringResource("prototype.provider.delete_account_failed_title")
+    static let providerSettingsDeleteAccountFailedBody = LocalizedStringResource("prototype.provider.delete_account_failed_body")
+    static let providerSettingsFetchModels = LocalizedStringResource("prototype.provider.fetch_models")
+    static let providerSettingsNoModelsFound = LocalizedStringResource("prototype.provider.no_models_found")
+    static let providerSettingsModelPickerTitle = LocalizedStringResource("prototype.provider.model_picker_title")
+    static let providerSettingsFetchModelsFailedTitle = LocalizedStringResource("prototype.provider.fetch_models_failed_title")
+    static let providerSettingsFetchModelsFailedBody = LocalizedStringResource("prototype.provider.fetch_models_failed_body")
+
     static let identityBornOnPika = LocalizedStringResource("prototype.identity.born_on_pika")
     static let identityBirthDate = LocalizedStringResource("prototype.identity.birth_date")
     static let identityProfile = LocalizedStringResource("prototype.identity.profile")
@@ -315,6 +327,9 @@ final class PrototypeAppSessionStore {
     }
 
     private func loadCurrentSession() -> PrototypeAppSession? {
+        if let testSession = Self.loadTestSession() {
+            return testSession
+        }
         guard let data = KeychainSessionVault.load(service: Constants.service, account: Constants.account) else {
             return nil
         }
@@ -326,6 +341,23 @@ final class PrototypeAppSessionStore {
             return nil
         }
         return session
+    }
+
+    /// Returns a synthetic session when `PIKA_TEST_SESSION_TOKEN` is set in the process environment.
+    /// Supports `PIKA_TEST_USER_ID`, `PIKA_TEST_USER_EMAIL`, and `PIKA_TEST_USER_DISPLAY_NAME` overrides.
+    private static func loadTestSession() -> PrototypeAppSession? {
+        let env = ProcessInfo.processInfo.environment
+        guard let token = env["PIKA_TEST_SESSION_TOKEN"], !token.isEmpty else { return nil }
+        return PrototypeAppSession(
+            sessionToken: token,
+            user: PrototypeAuthenticatedUser(
+                userID: env["PIKA_TEST_USER_ID"] ?? "test-user",
+                email: env["PIKA_TEST_USER_EMAIL"] ?? "test@example.com",
+                displayName: env["PIKA_TEST_USER_DISPLAY_NAME"] ?? "Test User",
+                photoURL: nil
+            ),
+            expiresAt: nil
+        )
     }
 }
 
@@ -435,6 +467,7 @@ protocol PrototypeGoogleAuthenticating {
     func signInWithGoogle() async throws -> PrototypeAppSession
     func refreshSession(sessionToken: String) async throws -> PrototypeAppSession
     func signOut(sessionToken: String) async
+    func deleteAccount(sessionToken: String) async throws
 }
 
 @MainActor
@@ -519,6 +552,14 @@ final class PrototypeGoogleOAuthService: NSObject, PrototypeGoogleAuthenticating
         request.httpMethod = "DELETE"
         request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
         _ = try? await session.data(for: request)
+    }
+
+    func deleteAccount(sessionToken: String) async throws {
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent("auth/account"))
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
     }
 
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {

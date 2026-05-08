@@ -44,10 +44,12 @@
 	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
     <key>AuthRedirectScheme</key>
     <string>pikatakehome</string>
+    <key>PikaBackendBaseURL</key>
+    <string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
     <key>VoiceChatBaseURL</key>
-	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
+    <string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
     <key>VoiceTrainingBaseURL</key>
-	<string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
+    <string>https://pika-voice-backend-jf7rk4l2gq-pd.a.run.app</string>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIAppFonts</key>

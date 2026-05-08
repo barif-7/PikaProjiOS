@@ -171,7 +171,7 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
 }
 
 private final class SnapshotProviderConnectionService: PrototypeProviderConnectionServicing {
-    func loadOllamaConnection() async throws -> PrototypeOllamaConnection {
+    func loadOllamaConnection() async throws -> PrototypeOllamaConnection? {
         PrototypeOllamaConnection(
             endpointURL: "https://ollama.example.com",
             model: "llama3.1",

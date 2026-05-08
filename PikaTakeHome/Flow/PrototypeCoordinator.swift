@@ -217,7 +217,7 @@ final class PrototypeCoordinator: ObservableObject {
         return viewModel
     }
 
-    // Creates the provider settings view model and binds sign-out handling.
+    // Creates the provider settings view model and binds sign-out and account-deletion handling.
     private func makeProviderSettingsViewModel() -> PrototypeProviderSettingsViewModel {
         let viewModel = PrototypeProviderSettingsViewModel()
         viewModel.onBackRequested = { [weak self] in
@@ -225,6 +225,9 @@ final class PrototypeCoordinator: ObservableObject {
         }
         viewModel.onSignedOut = { [weak self] in
             self?.handleSignOut()
+        }
+        viewModel.onAccountDeleted = { [weak self] in
+            self?.handleAccountDeleted()
         }
         return viewModel
     }
@@ -388,6 +391,13 @@ final class PrototypeCoordinator: ObservableObject {
         refreshAuthenticatedDependencies()
         route = .welcome
         welcomeViewModel.reset(phoneNumber: sessionStore.state.phoneNumber)
+    }
+
+    private func handleAccountDeleted() {
+        refreshAuthenticatedDependencies()
+        sessionStore.saveVoiceProfileID(nil)
+        route = .welcome
+        welcomeViewModel.reset(phoneNumber: "")
     }
 
     // Clears auth-dependent cached view models so they are rebuilt with fresh session state.

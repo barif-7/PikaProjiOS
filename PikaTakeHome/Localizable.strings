@@ -101,6 +101,17 @@
 "prototype.provider.sign_out_failed_title" = "Couldn’t sign out";
 "prototype.provider.sign_out_failed_body" = "Try again after the backend is running.";
 "prototype.provider.open" = "Provider Settings";
+"prototype.provider.delete_account" = "Delete Account";
+"prototype.provider.delete_account_title" = "Delete your account?";
+"prototype.provider.delete_account_message" = "This will permanently delete your account and all associated data. This cannot be undone.";
+"prototype.provider.delete_account_confirm" = "Delete Account";
+"prototype.provider.delete_account_failed_title" = "Couldn't delete account";
+"prototype.provider.delete_account_failed_body" = "An error occurred while deleting your account. Try again or contact support.";
+"prototype.provider.fetch_models" = "Fetch Models";
+"prototype.provider.no_models_found" = "No models found at that endpoint. Make sure Ollama is running and has at least one model pulled.";
+"prototype.provider.model_picker_title" = "Select Model";
+"prototype.provider.fetch_models_failed_title" = "Couldn't fetch models";
+"prototype.provider.fetch_models_failed_body" = "Check that the endpoint URL is correct and Ollama is reachable, then try again.";
 "prototype.two_factor.title" = "Authenticator 2FA";
 "prototype.two_factor.subtitle" = "Protect sensitive account actions with a free, self-hosted authenticator app flow.";
 "prototype.two_factor.enable" = "Enable 2FA";

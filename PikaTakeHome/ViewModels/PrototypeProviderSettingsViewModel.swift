@@ -9,190 +9,6 @@ import Foundation
 import SwiftUI
 import UIKit
 
-/// Editable Ollama provider connection shown in settings.
-struct PrototypeOllamaConnection: Equatable {
-    var endpointURL: String
-    var model: String
-    var apiToken: String
-    var label: String
-}
-
-private struct BackendOllamaConnectionResponse: Decodable {
-    let endpointURL: String
-    let model: String?
-    let hasAPIToken: Bool
-    let label: String?
-}
-
-private struct BackendOllamaConnectionRequest: Encodable {
-    let endpointURL: String
-    let model: String?
-    let apiToken: String?
-    let label: String?
-}
-
-private struct ProviderBackendErrorResponse: Decodable {
-    let message: String
-}
-
-/// Backend service used to load and save the user's Ollama connection.
-protocol PrototypeProviderConnectionServicing {
-    func loadOllamaConnection() async throws -> PrototypeOllamaConnection
-    func saveOllamaConnection(_ connection: PrototypeOllamaConnection) async throws
-}
-
-/// Minimal URLSession abstraction for provider network calls.
-protocol PrototypeProviderHTTPSessioning {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse)
-}
-
-extension URLSession: PrototypeProviderHTTPSessioning {}
-
-/// Minimal session-store abstraction for provider settings.
-@MainActor
-protocol PrototypeProviderSettingsSessionStoring: AnyObject {
-    var currentSession: PrototypeAppSession? { get }
-    func clearSession()
-}
-
-extension PrototypeAppSessionStore: PrototypeProviderSettingsSessionStoring {
-    var currentSession: PrototypeAppSession? {
-        state.session
-    }
-
-    func clearSession() {
-        clear()
-    }
-}
-
-/// Builds provider-connection services for the current session context.
-protocol PrototypeProviderConnectionServiceBuilding {
-    @MainActor
-    func makeService(
-        appSessionStore: PrototypeProviderSettingsSessionStoring,
-        authConfiguration: AuthBackendConfiguration?
-    ) -> PrototypeProviderConnectionServicing?
-}
-
-/// HTTP implementation for provider-connection persistence.
-actor HTTPPrototypeProviderConnectionService: PrototypeProviderConnectionServicing {
-    private let endpointURL: URL
-    private let sessionToken: String
-    private let session: PrototypeProviderHTTPSessioning
-    private let decoder = JSONDecoder()
-    private let encoder = JSONEncoder()
-
-    init(
-        endpointURL: URL,
-        sessionToken: String,
-        session: PrototypeProviderHTTPSessioning = URLSession.shared
-    ) {
-        self.endpointURL = endpointURL
-        self.sessionToken = sessionToken
-        self.session = session
-    }
-
-    func loadOllamaConnection() async throws -> PrototypeOllamaConnection {
-        var request = URLRequest(url: endpointURL)
-        request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
-
-        let (data, response) = try await session.data(for: request)
-        try validate(response: response, data: data)
-
-        let decoded = try decoder.decode(BackendOllamaConnectionResponse.self, from: data)
-        return PrototypeOllamaConnection(
-            endpointURL: decoded.endpointURL,
-            model: decoded.model ?? "",
-            apiToken: "",
-            label: decoded.label ?? ""
-        )
-    }
-
-    func saveOllamaConnection(_ connection: PrototypeOllamaConnection) async throws {
-        var request = URLRequest(url: endpointURL)
-        request.httpMethod = "PUT"
-        request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try encoder.encode(
-            BackendOllamaConnectionRequest(
-                endpointURL: connection.endpointURL,
-                model: connection.model.nilIfBlank,
-                apiToken: connection.apiToken.nilIfBlank,
-                label: connection.label.nilIfBlank
-            )
-        )
-
-        let (data, response) = try await session.data(for: request)
-        try validate(response: response, data: data)
-    }
-
-    private func validate(response: URLResponse, data: Data) throws {
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw PrototypeProviderSettingsError.invalidResponse
-        }
-
-        guard (200 ... 299).contains(httpResponse.statusCode) else {
-            let backendMessage = (try? decoder.decode(ProviderBackendErrorResponse.self, from: data))?.message
-            throw PrototypeProviderSettingsError.backend(
-                message: backendMessage ?? String(localized: AppStrings.providerSettingsSaveFailedBody)
-            )
-        }
-    }
-}
-
-/// Builds the provider settings service from the current authenticated session.
-struct PrototypeProviderConnectionServiceFactory: PrototypeProviderConnectionServiceBuilding {
-    @MainActor
-    static func makeDefault(
-        authConfiguration: AuthBackendConfiguration? = AuthBackendConfiguration.load(),
-        appSessionStore: PrototypeProviderSettingsSessionStoring
-    ) -> PrototypeProviderConnectionServicing? {
-        guard
-            let authConfiguration,
-            let sessionToken = appSessionStore.currentSession?.sessionToken,
-            !sessionToken.isEmpty
-        else {
-            return nil
-        }
-
-        return HTTPPrototypeProviderConnectionService(
-            endpointURL: authConfiguration.baseURL
-                .appendingPathComponent("provider-connections")
-                .appendingPathComponent("ollama"),
-            sessionToken: sessionToken
-        )
-    }
-
-    @MainActor
-    func makeService(
-        appSessionStore: PrototypeProviderSettingsSessionStoring,
-        authConfiguration: AuthBackendConfiguration? = AuthBackendConfiguration.load()
-    ) -> PrototypeProviderConnectionServicing? {
-        Self.makeDefault(
-            authConfiguration: authConfiguration,
-            appSessionStore: appSessionStore
-        )
-    }
-}
-
-/// User-facing provider settings failures.
-enum PrototypeProviderSettingsError: LocalizedError {
-    case signedOut
-    case invalidResponse
-    case backend(message: String)
-
-    var errorDescription: String? {
-        switch self {
-        case .signedOut:
-            return String(localized: AppStrings.providerSettingsSignedOut)
-        case .invalidResponse:
-            return String(localized: AppStrings.providerSettingsSaveFailedBody)
-        case let .backend(message):
-            return message
-        }
-    }
-}
-
 @MainActor
 /// View model for viewing and editing the authenticated user's Ollama connection.
 final class PrototypeProviderSettingsViewModel: ObservableObject {
@@ -203,6 +19,7 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isSaving = false
     @Published private(set) var isSigningOut = false
+    @Published private(set) var isDeleting = false
     @Published private(set) var statusText: String?
     @Published var twoFactorCode = ""
     @Published private(set) var isTwoFactorEnabled = false
@@ -212,9 +29,14 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     @Published private(set) var twoFactorQRCodeImage: UIImage?
     @Published private(set) var twoFactorStatusText: String?
     @Published var alert: PrototypeCameraAlert?
+    @Published var showDeleteAccountConfirmation = false
+    @Published private(set) var availableModels: [String] = []
+    @Published private(set) var isFetchingModels = false
+    @Published var showModelPicker = false
 
     var onBackRequested: (() -> Void)?
     var onSignedOut: (() -> Void)?
+    var onAccountDeleted: (() -> Void)?
 
     private let appSessionStore: PrototypeProviderSettingsSessionStoring
     private let authService: PrototypeGoogleAuthenticating?
@@ -270,7 +92,11 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     }
 
     var canSignOut: Bool {
-        !isSaving && !isSigningOut && isSignedIn && isTwoFactorSatisfied
+        !isSaving && !isSigningOut && !isDeleting && isSignedIn && isTwoFactorSatisfied
+    }
+
+    var canDeleteAccount: Bool {
+        !isDeleting && !isSaving && !isSigningOut && isSignedIn && isTwoFactorSatisfied
     }
 
     var canSubmitTwoFactorCode: Bool {
@@ -336,11 +162,12 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let connection = try await service.loadOllamaConnection()
-            endpointURL = connection.endpointURL
-            model = connection.model
-            apiToken = connection.apiToken
-            label = connection.label
+            if let connection = try await service.loadOllamaConnection() {
+                endpointURL = connection.endpointURL
+                model = connection.model
+                apiToken = connection.apiToken
+                label = connection.label
+            }
         } catch {
             alert = PrototypeCameraAlert(
                 title: String(localized: AppStrings.providerSettingsLoadFailedTitle),
@@ -364,6 +191,80 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
     func signOutTapped() {
         Task {
             await signOut()
+        }
+    }
+
+    func deleteAccountTapped() {
+        showDeleteAccountConfirmation = true
+    }
+
+    func confirmDeleteAccount() {
+        Task {
+            await deleteAccount()
+        }
+    }
+
+    func deleteAccount() async {
+        guard let session else { return }
+        isDeleting = true
+        defer { isDeleting = false }
+
+        // Best-effort server-side deletion; clear local state regardless.
+        try? await authService?.deleteAccount(sessionToken: session.sessionToken)
+        twoFactorService.disable(for: session.user)
+        appSessionStore.clearSession()
+        clearSignedInState()
+        onAccountDeleted?()
+    }
+
+    func fetchModelsTapped() {
+        Task {
+            await fetchModels()
+        }
+    }
+
+    func fetchModels() async {
+        let endpoint = endpointURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !endpoint.isEmpty, let baseURL = URL(string: endpoint) else {
+            alert = PrototypeCameraAlert(
+                title: String(localized: AppStrings.providerSettingsFetchModelsFailedTitle),
+                message: String(localized: AppStrings.providerSettingsFetchModelsFailedBody)
+            )
+            return
+        }
+
+        isFetchingModels = true
+        defer { isFetchingModels = false }
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/tags"))
+        let trimmedToken = apiToken.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedToken.isEmpty {
+            request.setValue("Bearer \(trimmedToken)", forHTTPHeaderField: "Authorization")
+        }
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse,
+                  (200 ... 299).contains(http.statusCode) else {
+                throw PrototypeProviderSettingsError.invalidResponse
+            }
+            let decoded = try JSONDecoder().decode(OllamaTagsResponse.self, from: data)
+            availableModels = decoded.models.map(\.name)
+            if availableModels.isEmpty {
+                alert = PrototypeCameraAlert(
+                    title: String(localized: AppStrings.providerSettingsFetchModelsFailedTitle),
+                    message: String(localized: AppStrings.providerSettingsNoModelsFound)
+                )
+            } else {
+                showModelPicker = true
+            }
+        } catch {
+            alert = PrototypeCameraAlert(
+                title: String(localized: AppStrings.providerSettingsFetchModelsFailedTitle),
+                message: error.localizedDescription.isEmpty
+                    ? String(localized: AppStrings.providerSettingsFetchModelsFailedBody)
+                    : error.localizedDescription
+            )
         }
     }
 
@@ -463,6 +364,8 @@ final class PrototypeProviderSettingsViewModel: ObservableObject {
         twoFactorManualEntryKey = nil
         twoFactorQRCodeImage = nil
         twoFactorStatusText = nil
+        availableModels = []
+        showModelPicker = false
         hasLoaded = true
     }
 }

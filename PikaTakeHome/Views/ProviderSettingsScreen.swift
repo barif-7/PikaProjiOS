@@ -72,7 +72,7 @@ struct ProviderSettingsScreen: View {
 
                         if viewModel.isSignedIn {
                             providerField(title: AppStrings.providerSettingsEndpoint, text: $viewModel.endpointURL, keyboardType: .URL)
-                            providerField(title: AppStrings.providerSettingsModel, text: $viewModel.model)
+                            modelField
                             providerField(title: AppStrings.providerSettingsLabel, text: $viewModel.label)
                             providerField(title: AppStrings.providerSettingsToken, text: $viewModel.apiToken, isSecure: true)
                         } else {
@@ -122,6 +122,29 @@ struct ProviderSettingsScreen: View {
                             }
                             .buttonStyle(.plain)
                             .disabled(!viewModel.canSignOut)
+
+                            Button(action: {
+                                viewModel.deleteAccountTapped()
+                            }) {
+                                Group {
+                                    if viewModel.isDeleting {
+                                        ProgressView()
+                                    } else {
+                                        Text(AppStrings.providerSettingsDeleteAccount)
+                                            .font(designSystem.fonts.telka(15, weight: .black))
+                                    }
+                                }
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 52)
+                                .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                        .stroke(Color.red.opacity(0.25), lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(!viewModel.canDeleteAccount)
                         }
                     }
                     .padding(.horizontal, designSystem.spacing.xl)
@@ -155,6 +178,21 @@ struct ProviderSettingsScreen: View {
                     viewModel.alert = nil
                 }
             )
+        }
+        .confirmationDialog(
+            String(localized: AppStrings.providerSettingsDeleteAccountTitle),
+            isPresented: $viewModel.showDeleteAccountConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: AppStrings.providerSettingsDeleteAccountConfirm), role: .destructive) {
+                viewModel.confirmDeleteAccount()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text(AppStrings.providerSettingsDeleteAccountMessage)
+        }
+        .sheet(isPresented: $viewModel.showModelPicker) {
+            modelPickerSheet
         }
     }
 
@@ -259,6 +297,86 @@ struct ProviderSettingsScreen: View {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
             )
+        }
+    }
+
+    private var modelField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(AppStrings.providerSettingsModel)
+                .font(designSystem.fonts.telka(13, weight: .medium))
+                .foregroundStyle(designSystem.colors.textSecondary)
+
+            HStack(spacing: 8) {
+                TextField("", text: $viewModel.model)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .font(designSystem.fonts.telka(16))
+                    .foregroundStyle(designSystem.colors.textPrimary)
+                    .padding(.horizontal, 16)
+                    .frame(height: 56)
+                    .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                    )
+
+                Button {
+                    viewModel.fetchModelsTapped()
+                } label: {
+                    Group {
+                        if viewModel.isFetchingModels {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundStyle(designSystem.colors.textPrimary)
+                        }
+                    }
+                    .frame(width: 56, height: 56)
+                    .background(Color.white.opacity(0.7), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(designSystem.colors.borderSubtle, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(
+                    viewModel.isFetchingModels
+                        || viewModel.endpointURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                )
+            }
+        }
+    }
+
+    private var modelPickerSheet: some View {
+        NavigationView {
+            List(viewModel.availableModels, id: \.self) { modelName in
+                Button {
+                    viewModel.model = modelName
+                    viewModel.showModelPicker = false
+                } label: {
+                    HStack {
+                        Text(modelName)
+                            .font(.body)
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        if viewModel.model == modelName {
+                            Image(systemName: "checkmark")
+                                .foregroundStyle(.blue)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            .navigationTitle(String(localized: AppStrings.providerSettingsModelPickerTitle))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        viewModel.showModelPicker = false
+                    }
+                }
+            }
         }
     }
 
