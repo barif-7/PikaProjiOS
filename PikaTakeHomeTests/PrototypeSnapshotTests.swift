@@ -101,6 +101,73 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
     }
 
     @MainActor
+    func testProviderSettingsScreenVerified() async {
+        let sessionStore = SnapshotSessionStore(
+            session: PrototypeAppSession(
+                sessionToken: "session-token",
+                user: PrototypeAuthenticatedUser(
+                    userID: "user-123",
+                    email: "semi@pika.me",
+                    displayName: "Semi",
+                    photoURL: nil
+                ),
+                expiresAt: nil
+            )
+        )
+        let providerService = SnapshotProviderConnectionService()
+        let twoFactorService = SnapshotTwoFactorService()
+        let viewModel = PrototypeProviderSettingsViewModel(
+            service: providerService,
+            appSessionStore: sessionStore,
+            authService: nil,
+            twoFactorService: twoFactorService,
+            serviceBuilder: SnapshotProviderServiceBuilder(service: providerService),
+            authConfiguration: nil
+        )
+        await viewModel.prepare()
+        viewModel.enableTwoFactorTapped()
+        viewModel.twoFactorCode = "123456"
+        viewModel.confirmTwoFactorTapped()
+
+        verifySnapshot(
+            view: ProviderSettingsScreen(viewModel: viewModel),
+            identifier: "provider-verified"
+        )
+    }
+
+    @MainActor
+    func testProviderSettingsScreenSignedOut() async {
+        let sessionStore = SnapshotSessionStore(
+            session: PrototypeAppSession(
+                sessionToken: "session-token",
+                user: PrototypeAuthenticatedUser(
+                    userID: "user-123",
+                    email: "semi@pika.me",
+                    displayName: "Semi",
+                    photoURL: nil
+                ),
+                expiresAt: nil
+            )
+        )
+        let providerService = SnapshotProviderConnectionService()
+        let viewModel = PrototypeProviderSettingsViewModel(
+            service: providerService,
+            appSessionStore: sessionStore,
+            authService: nil,
+            twoFactorService: SnapshotTwoFactorService(),
+            serviceBuilder: SnapshotProviderServiceBuilder(service: providerService),
+            authConfiguration: nil
+        )
+        await viewModel.prepare()
+        await viewModel.signOut()
+
+        verifySnapshot(
+            view: ProviderSettingsScreen(viewModel: viewModel),
+            identifier: "provider-signed-out"
+        )
+    }
+
+    @MainActor
     private func verifySnapshot<V: View>(
         view: V,
         identifier: String,
