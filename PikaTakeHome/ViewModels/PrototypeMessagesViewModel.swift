@@ -352,8 +352,8 @@ final class PrototypeMessagesViewModel: ObservableObject {
     }
 }
 
-private extension UIImage {
-    func resizedForConversationAvatar(maxDimension: CGFloat) -> UIImage? {
+extension UIImage {
+    public func resizedForConversationAvatar(maxDimension: CGFloat) -> UIImage? {
         let longestSide = max(size.width, size.height)
         guard longestSide > maxDimension else { return self }
 

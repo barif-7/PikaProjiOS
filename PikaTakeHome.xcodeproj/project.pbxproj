@@ -32,6 +32,15 @@
 		1D94B1002F90A82F00373810 /* ImportedAssets in Resources */ = {isa = PBXBuildFile; fileRef = 1D94B1012F90A82F00373810 /* ImportedAssets */; };
 		4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1D10052B23000100FACE01 /* AudioChunking.swift */; };
 		4C1D10072B23000100FACE01 /* PikaBackendConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C1D10082B23000100FACE01 /* PikaBackendConfiguration.swift */; };
+		8A2000012E01000100FACE01 /* PrototypeMessagesAudioIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000112E01000100FACE01 /* PrototypeMessagesAudioIO.swift */; };
+		8A2000022E01000100FACE01 /* PrototypeMessagesConversationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000122E01000100FACE01 /* PrototypeMessagesConversationService.swift */; };
+		8A2000032E01000100FACE01 /* PrototypeMessagesViewModelDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000132E01000100FACE01 /* PrototypeMessagesViewModelDataTypes.swift */; };
+		8A2000042E01000100FACE01 /* PrototypeMessagesVoiceChatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000142E01000100FACE01 /* PrototypeMessagesVoiceChatService.swift */; };
+		8A2000052E01000100FACE01 /* PrototypeProviderConnectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000152E01000100FACE01 /* PrototypeProviderConnectionService.swift */; };
+		8A2000062E01000100FACE01 /* PrototypeProviderSettingsViewModelDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000162E01000100FACE01 /* PrototypeProviderSettingsViewModelDataTypes.swift */; };
+		8A2000072E01000100FACE01 /* PrototypeVoiceRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000172E01000100FACE01 /* PrototypeVoiceRecorder.swift */; };
+		8A2000082E01000100FACE01 /* PrototypeVoiceTrainingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000182E01000100FACE01 /* PrototypeVoiceTrainingService.swift */; };
+		8A2000092E01000100FACE01 /* PrototypeVoiceViewModelDataTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2000192E01000100FACE01 /* PrototypeVoiceViewModelDataTypes.swift */; };
 		A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */; };
 		A1B2C3D62A11000100FACE01 /* MessagesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */; };
 		5E0000010000000000FACE01 /* PikaKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0000000000000000FACE01 /* PikaKit.swift */; };
@@ -72,6 +81,15 @@
 		1D94B1012F90A82F00373810 /* ImportedAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ImportedAssets; sourceTree = "<group>"; };
 		4C1D10052B23000100FACE01 /* AudioChunking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioChunking.swift; sourceTree = "<group>"; };
 		4C1D10082B23000100FACE01 /* PikaBackendConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaBackendConfiguration.swift; sourceTree = "<group>"; };
+		8A2000112E01000100FACE01 /* PrototypeMessagesAudioIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesAudioIO.swift; sourceTree = "<group>"; };
+		8A2000122E01000100FACE01 /* PrototypeMessagesConversationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesConversationService.swift; sourceTree = "<group>"; };
+		8A2000132E01000100FACE01 /* PrototypeMessagesViewModelDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesViewModelDataTypes.swift; sourceTree = "<group>"; };
+		8A2000142E01000100FACE01 /* PrototypeMessagesVoiceChatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesVoiceChatService.swift; sourceTree = "<group>"; };
+		8A2000152E01000100FACE01 /* PrototypeProviderConnectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeProviderConnectionService.swift; sourceTree = "<group>"; };
+		8A2000162E01000100FACE01 /* PrototypeProviderSettingsViewModelDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeProviderSettingsViewModelDataTypes.swift; sourceTree = "<group>"; };
+		8A2000172E01000100FACE01 /* PrototypeVoiceRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeVoiceRecorder.swift; sourceTree = "<group>"; };
+		8A2000182E01000100FACE01 /* PrototypeVoiceTrainingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeVoiceTrainingService.swift; sourceTree = "<group>"; };
+		8A2000192E01000100FACE01 /* PrototypeVoiceViewModelDataTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeVoiceViewModelDataTypes.swift; sourceTree = "<group>"; };
 		A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrototypeMessagesViewModel.swift; sourceTree = "<group>"; };
 		A1B2C3D52A11000100FACE01 /* MessagesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesScreen.swift; sourceTree = "<group>"; };
 		5E0000000000000000FACE01 /* PikaKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PikaKit.swift; sourceTree = "<group>"; };
@@ -210,9 +228,18 @@
 				1D94B0E22F908CF900373810 /* PrototypeWelcomeViewModel.swift */,
 				1D94B0E42F908CF900373810 /* PrototypeCameraViewModel.swift */,
 				1D94B0E62F908CFA00373810 /* PrototypeVoiceViewModel.swift */,
+				8A2000192E01000100FACE01 /* PrototypeVoiceViewModelDataTypes.swift */,
+				8A2000172E01000100FACE01 /* PrototypeVoiceRecorder.swift */,
+				8A2000182E01000100FACE01 /* PrototypeVoiceTrainingService.swift */,
 				1D94B0E82F908CFA00373810 /* PrototypeSuccessViewModel.swift */,
 				A1B2C3D32A11000100FACE01 /* PrototypeMessagesViewModel.swift */,
+				8A2000132E01000100FACE01 /* PrototypeMessagesViewModelDataTypes.swift */,
+				8A2000112E01000100FACE01 /* PrototypeMessagesAudioIO.swift */,
+				8A2000142E01000100FACE01 /* PrototypeMessagesVoiceChatService.swift */,
+				8A2000122E01000100FACE01 /* PrototypeMessagesConversationService.swift */,
 				4C1D10002B22000100FACE01 /* PrototypeProviderSettingsViewModel.swift */,
+				8A2000162E01000100FACE01 /* PrototypeProviderSettingsViewModelDataTypes.swift */,
+				8A2000152E01000100FACE01 /* PrototypeProviderConnectionService.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -349,6 +376,9 @@
 				1D94B0EB2F908D1F00373810 /* PrototypeCoordinatorView.swift in Sources */,
 				1D94B0F72F908D7400373810 /* PrototypeArtwork.swift in Sources */,
 				1D94B0E72F908CFA00373810 /* PrototypeVoiceViewModel.swift in Sources */,
+				8A2000092E01000100FACE01 /* PrototypeVoiceViewModelDataTypes.swift in Sources */,
+				8A2000072E01000100FACE01 /* PrototypeVoiceRecorder.swift in Sources */,
+				8A2000082E01000100FACE01 /* PrototypeVoiceTrainingService.swift in Sources */,
 				1A1A1A1A1A1A1A1A1A1A1A01 /* PikaTakeHomeApp.swift in Sources */,
 				1A1A1A1A1A1A1A1A1A1A1A02 /* PrototypeFlow.swift in Sources */,
 				2B7F10012A00000100FACE01 /* SelfieAvatarPipeline.swift in Sources */,
@@ -356,9 +386,15 @@
 				1D94B0F12F908D2000373810 /* VoiceScreen.swift in Sources */,
 				6F4A00012C21000100FACE01 /* FeatureFlags.swift in Sources */,
 				A1B2C3D42A11000100FACE01 /* PrototypeMessagesViewModel.swift in Sources */,
+				8A2000032E01000100FACE01 /* PrototypeMessagesViewModelDataTypes.swift in Sources */,
+				8A2000012E01000100FACE01 /* PrototypeMessagesAudioIO.swift in Sources */,
+				8A2000042E01000100FACE01 /* PrototypeMessagesVoiceChatService.swift in Sources */,
+				8A2000022E01000100FACE01 /* PrototypeMessagesConversationService.swift in Sources */,
 				1D94B0F52F908D7300373810 /* PrototypeControls.swift in Sources */,
 				1D94B0E92F908CFA00373810 /* PrototypeSuccessViewModel.swift in Sources */,
 				4C1D10012B22000100FACE01 /* PrototypeProviderSettingsViewModel.swift in Sources */,
+				8A2000062E01000100FACE01 /* PrototypeProviderSettingsViewModelDataTypes.swift in Sources */,
+				8A2000052E01000100FACE01 /* PrototypeProviderConnectionService.swift in Sources */,
 				4C1D10042B23000100FACE01 /* AudioChunking.swift in Sources */,
 				4C1D10072B23000100FACE01 /* PikaBackendConfiguration.swift in Sources */,
 				7A1000022D01000100FACE01 /* PrototypeAuthenticatorTwoFactorService.swift in Sources */,
