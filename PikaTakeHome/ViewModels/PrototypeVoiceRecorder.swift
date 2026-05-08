@@ -91,3 +91,34 @@ final class AVAudioVoiceSampleRecorder: NSObject, VoiceSampleRecording, @uncheck
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
 }
+
+/// Lightweight recorder used when voice training is disabled but the prototype UI remains visible.
+final class LocalDemoVoiceSampleRecorder: VoiceSampleRecording, @unchecked Sendable {
+    private var startedAt: Date?
+
+    var currentTime: TimeInterval {
+        guard let startedAt else { return 0 }
+        return Date().timeIntervalSince(startedAt)
+    }
+
+    func start() async throws {
+        startedAt = Date()
+    }
+
+    func stop() async throws -> VoiceRecordedSample {
+        guard let startedAt else {
+            throw VoiceRecordingError.missingRecording
+        }
+
+        self.startedAt = nil
+        let duration = max(0.1, Date().timeIntervalSince(startedAt))
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("pika-voice-demo-\(UUID().uuidString)")
+            .appendingPathExtension("wav")
+        return VoiceRecordedSample(fileURL: fileURL, duration: duration)
+    }
+
+    func cancel() async {
+        startedAt = nil
+    }
+}

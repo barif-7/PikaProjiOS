@@ -74,7 +74,7 @@ struct FeatureFlagManager: FeatureFlagManaging {
         case .voiceUIFlow:
             return true
         case .enableVoiceTraining, .enableVoiceChat:
-            return true
+            return false
         }
     }
 

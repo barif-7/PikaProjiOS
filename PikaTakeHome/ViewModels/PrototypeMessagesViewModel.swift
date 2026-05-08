@@ -56,7 +56,7 @@ final class PrototypeMessagesViewModel: ObservableObject {
     ) {
         let isVoiceChatEnabled = featureFlags.isEnabled(.enableVoiceChat)
         let resolvedChatService = chatService ?? MessagesVoiceChatServiceFactory.makeDefault()
-        self.recorder = recorder ?? MessagesAudioRecorder()
+        self.recorder = recorder ?? (isVoiceChatEnabled ? MessagesAudioRecorder() : LocalDemoMessagesVoiceRecorder())
         self.chatService = resolvedChatService
         self.conversationStore = isVoiceChatEnabled
             ? (conversationStore ?? MessagesConversationServiceFactory.makeDefault())

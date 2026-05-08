@@ -37,11 +37,12 @@ final class PrototypeVoiceViewModel: ObservableObject {
     private var recordingTask: Task<Void, Never>?
 
     init(
-        recorder: VoiceSampleRecording = AVAudioVoiceSampleRecorder(),
+        recorder: VoiceSampleRecording? = nil,
         trainer: VoiceProfileTraining? = nil,
         featureFlags: FeatureFlagManaging = FeatureFlagManager.shared
     ) {
-        self.recorder = recorder
+        let isVoiceTrainingEnabled = featureFlags.isEnabled(.enableVoiceTraining)
+        self.recorder = recorder ?? (isVoiceTrainingEnabled ? AVAudioVoiceSampleRecorder() : LocalDemoVoiceSampleRecorder())
         self.trainer = trainer ?? VoiceTrainingServiceFactory.makeDefault()
         self.featureFlags = featureFlags
     }

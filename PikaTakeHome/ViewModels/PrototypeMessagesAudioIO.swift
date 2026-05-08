@@ -87,6 +87,32 @@ final class MessagesAudioRecorder: NSObject, MessagesVoiceRecorder, @unchecked S
     }
 }
 
+/// Lightweight recorder used when voice chat is disabled but the prototype UI remains visible.
+final class LocalDemoMessagesVoiceRecorder: MessagesVoiceRecorder, @unchecked Sendable {
+    private var startedAt: Date?
+
+    func start() async throws {
+        startedAt = Date()
+    }
+
+    func stop() async throws -> MessagesRecordedTurn {
+        guard let startedAt else {
+            throw MessagesVoiceChatError.failedToStopRecording
+        }
+
+        self.startedAt = nil
+        let duration = max(0.1, Date().timeIntervalSince(startedAt))
+        let fileURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("pika-messages-demo-\(UUID().uuidString)")
+            .appendingPathExtension("wav")
+        return MessagesRecordedTurn(fileURL: fileURL, duration: duration)
+    }
+
+    func cancel() async {
+        startedAt = nil
+    }
+}
+
 @MainActor
 /// Small `AVAudioPlayer` wrapper for backend response audio.
 final class MessagesAudioPlayer: NSObject, MessagesAudioPlaying, AVAudioPlayerDelegate {

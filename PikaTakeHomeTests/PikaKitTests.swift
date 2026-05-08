@@ -31,7 +31,8 @@ final class PikaKitTests: XCTestCase {
             recorder: MockMessagesVoiceRecorder(),
             chatService: MockMessagesVoiceChatService(),
             conversationStore: store,
-            audioPlayer: MockMessagesAudioPlayer()
+            audioPlayer: MockMessagesAudioPlayer(),
+            featureFlags: FeatureFlagManager(overrides: [.enableVoiceChat: true])
         )
 
         viewModel.setVoiceProfileID(" voice-profile-new ")
@@ -50,7 +51,8 @@ final class PikaKitTests: XCTestCase {
             recorder: MockMessagesVoiceRecorder(),
             chatService: MockMessagesVoiceChatService(),
             conversationStore: store,
-            audioPlayer: MockMessagesAudioPlayer()
+            audioPlayer: MockMessagesAudioPlayer(),
+            featureFlags: FeatureFlagManager(overrides: [.enableVoiceChat: true])
         )
 
         await viewModel.prepareConversation()
@@ -80,7 +82,7 @@ final class PikaKitTests: XCTestCase {
             let url = try XCTUnwrap(request.url)
             XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer session-token")
             if request.httpMethod == "POST" {
-                let body = try XCTUnwrap(request.httpBody)
+                let body = try XCTUnwrap(self.requestBodyData(for: request))
                 let jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
                 XCTAssertEqual(jsonObject["voiceProfileID"] as? String, "voice-profile-override")
                 XCTAssertEqual(url.path, "/voice-chat/jobs")
@@ -158,7 +160,7 @@ final class PikaKitTests: XCTestCase {
         MockURLProtocol.requestHandler = { request in
             let url = try XCTUnwrap(request.url)
             if request.httpMethod == "POST" {
-                let body = try XCTUnwrap(request.httpBody)
+                let body = try XCTUnwrap(self.requestBodyData(for: request))
                 let jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
                 XCTAssertNil(jsonObject["audioBase64"])
                 let chunks = try XCTUnwrap(jsonObject["audioChunks"] as? [[String: Any]])
@@ -218,7 +220,7 @@ final class PikaKitTests: XCTestCase {
         MockURLProtocol.requestHandler = { request in
             let url = try XCTUnwrap(request.url)
             if request.httpMethod == "POST" {
-                let body = try XCTUnwrap(request.httpBody)
+                let body = try XCTUnwrap(self.requestBodyData(for: request))
                 let jsonObject = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
                 XCTAssertNil(jsonObject["audioBase64"])
                 let chunks = try XCTUnwrap(jsonObject["audioChunks"] as? [[String: Any]])
@@ -254,20 +256,117 @@ final class PikaKitTests: XCTestCase {
         XCTAssertTrue(inspectedRequest)
     }
 
+    @MainActor
+    func testMessagesRecordingUsesLocalDemoRecorderWhenVoiceChatIsDisabled() async throws {
+        let viewModel = PrototypeMessagesViewModel(
+            chatService: MockMessagesVoiceChatService(),
+            audioPlayer: MockMessagesAudioPlayer(),
+            featureFlags: FeatureFlagManager(overrides: [.enableVoiceChat: false])
+        )
+
+        viewModel.primaryActionTapped()
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(viewModel.callState, .listening)
+
+        viewModel.primaryActionTapped()
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(viewModel.callState, .idle)
+        XCTAssertTrue(viewModel.messages.contains { $0.text.contains("Voice Chat is disabled") })
+    }
+
+    @MainActor
+    func testVoiceSampleRecordingUsesLocalDemoRecorderWhenTrainingIsDisabled() async throws {
+        let viewModel = PrototypeVoiceViewModel(
+            featureFlags: FeatureFlagManager(overrides: [.enableVoiceTraining: false])
+        )
+        var didConfirm = false
+
+        viewModel.onStartRecordingRequested = {
+            viewModel.stage = .recording
+        }
+        viewModel.onStopRecordingRequested = {
+            viewModel.stage = .complete
+        }
+        viewModel.onConfirmRequested = {
+            didConfirm = true
+        }
+
+        viewModel.primaryVoiceActionTapped()
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(viewModel.stage, .recording)
+
+        viewModel.primaryVoiceActionTapped()
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(viewModel.stage, .complete)
+        XCTAssertGreaterThan(viewModel.recordingDuration, 0)
+
+        viewModel.confirmTapped()
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertTrue(didConfirm)
+        XCTAssertNil(viewModel.trainedVoiceProfileID)
+    }
+
     private func makeSilentAudioFile(duration: TimeInterval) throws -> URL {
         let sampleRate = 16_000.0
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("pika-audio-\(UUID().uuidString)")
             .appendingPathExtension("wav")
 
-        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        let settings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
+            AVSampleRateKey: sampleRate,
+            AVNumberOfChannelsKey: 1,
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsFloatKey: false,
+        ]
+        let format = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: sampleRate, channels: 1, interleaved: false)!
         let frameCapacity = AVAudioFrameCount(duration * sampleRate)
         let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCapacity)!
         buffer.frameLength = frameCapacity
 
-        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        let file = try AVAudioFile(
+            forWriting: url,
+            settings: settings,
+            commonFormat: format.commonFormat,
+            interleaved: format.isInterleaved
+        )
         try file.write(from: buffer)
         return url
+    }
+
+    private func requestBodyData(for request: URLRequest) -> Data? {
+        if let httpBody = request.httpBody {
+            return httpBody
+        }
+
+        guard let stream = request.httpBodyStream else {
+            return nil
+        }
+
+        stream.open()
+        defer { stream.close() }
+
+        var data = Data()
+        let bufferSize = 4096
+        let buffer = UnsafeMutablePointer<UInt8>.allocate(capacity: bufferSize)
+        defer { buffer.deallocate() }
+
+        while stream.hasBytesAvailable {
+            let bytesRead = stream.read(buffer, maxLength: bufferSize)
+            if bytesRead > 0 {
+                data.append(buffer, count: bytesRead)
+            } else {
+                break
+            }
+        }
+
+        return data.isEmpty ? nil : data
     }
 }
 

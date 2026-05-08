@@ -41,13 +41,18 @@ enum AudioChunker {
         guard framesPerChunk > 0 else {
             return []
         }
+        let targetFrameLength = min(
+            inputFile.length,
+            AVAudioFramePosition((duration * sourceFormat.sampleRate).rounded(.up))
+        )
+        let expectedChunkCount = Int((duration / chunkDurationSeconds).rounded(.up))
 
         var chunkURLs: [URL] = []
         var chunkDurations: [TimeInterval] = []
         var chunkCount = 0
 
-        while inputFile.framePosition < inputFile.length {
-            let remainingFrames = inputFile.length - inputFile.framePosition
+        while chunkCount < expectedChunkCount, inputFile.framePosition < targetFrameLength {
+            let remainingFrames = targetFrameLength - inputFile.framePosition
             let chunkFrameCount = AVAudioFrameCount(min(AVAudioFramePosition(framesPerChunk), remainingFrames))
             guard chunkFrameCount > 0 else { break }
 
