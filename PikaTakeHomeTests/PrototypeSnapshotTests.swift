@@ -208,7 +208,7 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         size: CGSize = CGSize(width: 390, height: 844)
     ) {
         let shouldRecord = ProcessInfo.processInfo.environment["RECORD_SNAPSHOTS"] == "1"
-            || !Self.referenceImageExists(for: identifier)
+            || !referenceImageExists(for: identifier)
         recordMode = shouldRecord
 
         let hostingController = UIHostingController(
@@ -224,6 +224,25 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         window.layoutIfNeeded()
 
         FBSnapshotVerifyView(hostingController.view, identifier: identifier)
+    }
+
+    private func referenceImageExists(for identifier: String) -> Bool {
+        let normalizedIdentifier = identifier.replacingOccurrences(of: "-", with: "_")
+        for directoryURL in Self.referenceImageSearchDirectories() {
+            guard let enumerator = FileManager.default.enumerator(
+                at: directoryURL,
+                includingPropertiesForKeys: nil
+            ) else {
+                continue
+            }
+
+            for case let fileURL as URL in enumerator where fileURL.pathExtension.lowercased() == "png" {
+                if fileURL.lastPathComponent.contains(normalizedIdentifier) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     private static func makeAvatarImage() -> UIImage {
@@ -255,25 +274,15 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         testsDirectoryURL().appendingPathComponent("FailureDiffs")
     }
 
-    private static func testsDirectoryURL() -> URL {
-        URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+    private static func referenceImageSearchDirectories() -> [URL] {
+        [
+            testsDirectoryURL().appendingPathComponent("ReferenceImages_64"),
+            testsDirectoryURL().appendingPathComponent("ReferenceImages")
+        ]
     }
 
-    private static func referenceImageExists(for identifier: String) -> Bool {
-        let normalizedIdentifier = identifier.replacingOccurrences(of: "-", with: "_")
-        guard let enumerator = FileManager.default.enumerator(
-            at: testsDirectoryURL(),
-            includingPropertiesForKeys: nil
-        ) else {
-            return false
-        }
-
-        for case let fileURL as URL in enumerator where fileURL.pathExtension.lowercased() == "png" {
-            if fileURL.lastPathComponent.contains(normalizedIdentifier) {
-                return true
-            }
-        }
-        return false
+    private static func testsDirectoryURL() -> URL {
+        URL(fileURLWithPath: #filePath).deletingLastPathComponent()
     }
 }
 
