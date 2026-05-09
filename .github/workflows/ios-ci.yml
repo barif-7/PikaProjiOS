@@ -1,0 +1,97 @@
+name: iOS CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ios-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Build And Test
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Choose Simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for candidate in "iPhone 16" "iPhone 16 Pro" "iPhone 15" "iPhone 15 Pro"; do
+            if xcrun simctl list devices available | grep -Fq "$candidate ("; then
+              echo "name=$candidate" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+
+          echo "No supported iPhone simulator found on runner." >&2
+          xcrun simctl list devices available
+          exit 1
+
+      - name: Resolve Swift Packages
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project PikaTakeHome.xcodeproj \
+            -scheme PikaTakeHome \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData"
+
+      - name: Run Tests
+        env:
+          RESULT_BUNDLE_PATH: ${{ runner.temp }}/PikaTakeHome.xcresult
+        run: |
+          set -eo pipefail
+
+          xcodebuild test \
+            -project PikaTakeHome.xcodeproj \
+            -scheme PikaTakeHome \
+            -destination "platform=iOS Simulator,name=${{ steps.simulator.outputs.name }}" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -resultBundlePath "$RESULT_BUNDLE_PATH"
+
+      - name: Upload XCResult
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PikaTakeHome-xcresult
+          path: ${{ runner.temp }}/PikaTakeHome.xcresult
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Snapshot Failure Diffs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PikaTakeHome-snapshot-failure-diffs
+          path: PikaTakeHomeTests/FailureDiffs
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Write Job Summary
+        if: always()
+        run: |
+          {
+            echo "## iOS CI"
+            echo
+            echo "- Scheme: \`PikaTakeHome\`"
+            echo "- Simulator: \`${{ steps.simulator.outputs.name }}\`"
+            echo "- XCResult artifact: \`PikaTakeHome-xcresult\`"
+            echo "- Snapshot diff artifact: \`PikaTakeHome-snapshot-failure-diffs\`"
+          } >> "$GITHUB_STEP_SUMMARY"

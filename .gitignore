@@ -4,3 +4,4 @@ DerivedData/
 .deriveddata/
 xcuserdata/
 *.xcuserstate
+PikaTakeHomeTests/FailureDiffs/
