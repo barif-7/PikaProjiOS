@@ -231,7 +231,13 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         return renderer.image { context in
             let colors = [UIColor(red: 0.18, green: 0.12, blue: 0.42, alpha: 1), UIColor(red: 0.93, green: 0.49, blue: 0.32, alpha: 1)] as CFArray
             let colorSpace = CGColorSpaceCreateDeviceRGB()
-            let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: [0, 1])!
+            guard let gradient = CGGradient(
+                colorsSpace: colorSpace,
+                colors: colors,
+                locations: [0, 1]
+            ) else {
+                return
+            }
             context.cgContext.drawLinearGradient(
                 gradient,
                 start: CGPoint(x: 0, y: 0),
