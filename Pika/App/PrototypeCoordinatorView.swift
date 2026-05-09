@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-/// Route renderer for the coordinator-managed prototype flow.
+/// Route-renderer for the coordinator-managed prototype flow.
 struct PrototypeCoordinatorView: View {
     @ObservedObject var coordinator: PrototypeCoordinator
 
@@ -15,7 +15,13 @@ struct PrototypeCoordinatorView: View {
         ZStack {
             currentScreen
         }
-        .animation(.spring(response: 0.42, dampingFraction: 0.88), value: coordinator.animationValue)
+        .animation(
+            .spring(
+                response: 0.42,
+                dampingFraction: 0.88
+            ),
+            value: coordinator.animationValue
+        )
         .overlay {
             if coordinator.isProcessing {
                 Color.black.opacity(0.12)
@@ -23,7 +29,9 @@ struct PrototypeCoordinatorView: View {
 
                 ProgressView()
                     .padding(16)
-                    .background(.ultraThinMaterial, in: Capsule())
+                    .background(.ultraThinMaterial,
+                        in: Capsule()
+                    )
             }
         }
     }

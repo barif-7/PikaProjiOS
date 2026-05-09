@@ -21,15 +21,16 @@ final class PrototypeCoordinator: ObservableObject {
     private let sessionStore: PrototypeSessionStore
     private let appSessionStore: PrototypeAppSessionStore
     private let googleAuthService: PrototypeGoogleAuthenticating?
+    
     private let featureFlags: FeatureFlagManaging
-
-    // Lazily-created screen view models are cached so flow state can survive route changes.
+    
+    // Cached-Models
     private var storedCameraViewModel: PrototypeCameraViewModel?
     private var storedVoiceViewModel: PrototypeVoiceViewModel?
     private var storedSuccessViewModel: PrototypeSuccessViewModel?
     private var storedMessagesViewModel: PrototypeMessagesViewModel?
     private var storedProviderSettingsViewModel: PrototypeProviderSettingsViewModel?
-
+    
     // Used to cancel any in-flight transition work when the flow resets or deinitializes.
     private var pendingTransitionTask: Task<Void, Never>?
     private var isRetrainingVoiceProfile = false
@@ -50,10 +51,12 @@ final class PrototypeCoordinator: ObservableObject {
         self.featureFlags = featureFlags
         
         let sessionState = sessionStore.state
+        
         self.welcomeViewModel = PrototypeWelcomeViewModel(phoneNumber: sessionState.phoneNumber)
         
         self.route = Self.defaultRoute(for: sessionState)
         bindWelcomeViewModel()
+        
         Task { [weak self] in
             await self?.refreshStoredSessionIfNeeded()
         }

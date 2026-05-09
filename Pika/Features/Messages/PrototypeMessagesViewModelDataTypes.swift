@@ -43,13 +43,22 @@ enum MessagesVoiceChatError: LocalizedError {
     var title: String {
         switch self {
         case .microphonePermissionDenied:
-            return String(localized: AppStrings.messagesMicrophonePermissionTitle)
-        case .failedToStartRecording, .failedToStopRecording:
-            return String(localized: AppStrings.messagesRecordingFailedTitle)
-        case .backendNotConfigured, .backendNetworkFailed, .invalidResponse, .backendFailed:
-            return String(localized: AppStrings.messagesBackendFailedTitle)
+            return String(localized: AppStrings.messagesMicrophonePermissionTitle
+            )
+        case .failedToStartRecording,
+                .failedToStopRecording:
+            return String(localized: AppStrings.messagesRecordingFailedTitle
+            )
+        case .backendNotConfigured,
+                .backendNetworkFailed,
+                .invalidResponse,
+                .backendFailed:
+            return String(localized: AppStrings
+                .messagesBackendFailedTitle
+            )
         case .voiceProfileRequired:
-            return String(localized: AppStrings.messagesVoiceProfileRequiredTitle)
+            return String(localized: AppStrings.messagesVoiceProfileRequiredTitle
+            )
         case .textOnlyResponse:
             return String(localized: AppStrings.messagesTextOnlyTitle)
         }

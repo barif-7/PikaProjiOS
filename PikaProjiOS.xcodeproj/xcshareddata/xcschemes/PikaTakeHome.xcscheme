@@ -18,7 +18,7 @@
                BlueprintIdentifier = "1A1A1A1A1A1A1A1A1A1A1A40"
                BuildableName = "PikaTakeHome.app"
                BlueprintName = "PikaTakeHome"
-               ReferencedContainer = "container:PikaTakeHome.xcodeproj">
+               ReferencedContainer = "container:PikaProjiOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -32,7 +32,7 @@
                BlueprintIdentifier = "2B7F10072A00000100FACE01"
                BuildableName = "PikaTakeHomeTests.xctest"
                BlueprintName = "PikaTakeHomeTests"
-               ReferencedContainer = "container:PikaTakeHome.xcodeproj">
+               ReferencedContainer = "container:PikaProjiOS.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -63,7 +63,7 @@
                BlueprintIdentifier = "2B7F10072A00000100FACE01"
                BuildableName = "PikaTakeHomeTests.xctest"
                BlueprintName = "PikaTakeHomeTests"
-               ReferencedContainer = "container:PikaTakeHome.xcodeproj">
+               ReferencedContainer = "container:PikaProjiOS.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -85,7 +85,7 @@
             BlueprintIdentifier = "1A1A1A1A1A1A1A1A1A1A1A40"
             BuildableName = "PikaTakeHome.app"
             BlueprintName = "PikaTakeHome"
-            ReferencedContainer = "container:PikaTakeHome.xcodeproj">
+            ReferencedContainer = "container:PikaProjiOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -102,7 +102,7 @@
             BlueprintIdentifier = "1A1A1A1A1A1A1A1A1A1A1A40"
             BuildableName = "PikaTakeHome.app"
             BlueprintName = "PikaTakeHome"
-            ReferencedContainer = "container:PikaTakeHome.xcodeproj">
+            ReferencedContainer = "container:PikaProjiOS.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
