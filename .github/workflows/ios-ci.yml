@@ -49,7 +49,7 @@ jobs:
       - name: Resolve Swift Packages
         run: |
           xcodebuild -resolvePackageDependencies \
-            -project PikaTakeHome.xcodeproj \
+            -project PikaProjiOS.xcodeproj \
             -scheme PikaTakeHome \
             -derivedDataPath "$RUNNER_TEMP/DerivedData"
 
@@ -60,7 +60,7 @@ jobs:
           set -eo pipefail
 
           xcodebuild test \
-            -project PikaTakeHome.xcodeproj \
+            -project PikaProjiOS.xcodeproj \
             -scheme PikaTakeHome \
             -destination "platform=iOS Simulator,name=${{ steps.simulator.outputs.name }}" \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
