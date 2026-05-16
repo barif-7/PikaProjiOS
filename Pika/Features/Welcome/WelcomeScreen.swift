@@ -16,14 +16,57 @@ struct WelcomeScreen: View {
     @State private var hasStartedOnboardingAudio = false
 
     @Environment(\.designSystem) private var ds: PikaDesignSystem
+    private let featureFlags = FeatureFlagManager.shared
+    private let semiTheme = SemiDesign.theme
     
     private var headingColor: Color { ds.colors.textPrimary }
     private var subtitleColor: Color { ds.colors.textSecondary }
     private var termsColor: Color { ds.colors.textSecondary.opacity(0.5) }
     private var continueFill: Color { ds.colors.accentSecondary }
     private var continueText: Color { ds.colors.textPrimary }
+    private var usesSemiDesign: Bool {
+        featureFlags.isEnabled(.base44DesignUpgrade)
+    }
 
     var body: some View {
+        Group {
+            if usesSemiDesign {
+                semiBody
+            } else {
+                legacyBody
+            }
+        }
+        .ignoresSafeArea(edges: .top)
+        .contentShape(Rectangle())
+        .onAppear {
+            BitmapImageStore.shared.prewarm(.voiceBackground)
+            BitmapImageStore.shared.prewarm(.semiPortrait)
+            LoopingVideoStore.shared.prewarm(.onboardingHeroProxy)
+            VideoThumbnailStore.shared.prewarm(.onboardingHeroProxy)
+            BackgroundAudioStore.shared.prewarm(.onboardingBackgroundAudio)
+        }
+        .onDisappear {
+            hasStartedOnboardingAudio = false
+            BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                if hasStartedOnboardingAudio {
+                    BackgroundAudioStore.shared.play(.onboardingBackgroundAudio)
+                }
+            case .inactive, .background:
+                BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
+            @unknown default:
+                BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
+            }
+        }
+        .onTapGesture {
+            dismissKeyboard()
+        }
+    }
+
+    private var legacyBody: some View {
         ZStack {
             HeroFace {
                 guard !hasStartedOnboardingAudio else { return }
@@ -105,33 +148,122 @@ struct WelcomeScreen: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             }
         }
-        .ignoresSafeArea(edges: .top)
-        .contentShape(Rectangle())
-        .onAppear {
-            BitmapImageStore.shared.prewarm(.voiceBackground)
-            BitmapImageStore.shared.prewarm(.semiPortrait)
-            LoopingVideoStore.shared.prewarm(.onboardingHeroProxy)
-            VideoThumbnailStore.shared.prewarm(.onboardingHeroProxy)
-            BackgroundAudioStore.shared.prewarm(.onboardingBackgroundAudio)
-        }
-        .onDisappear {
-            hasStartedOnboardingAudio = false
-            BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            switch newPhase {
-            case .active:
-                if hasStartedOnboardingAudio {
-                    BackgroundAudioStore.shared.play(.onboardingBackgroundAudio)
+    }
+
+    private var semiBody: some View {
+        ZStack {
+            SemiBackground(theme: semiTheme)
+
+            VStack(spacing: 0) {
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [semiTheme.aura[0].opacity(0.24), semiTheme.backgroundBottom],
+                                    center: .center,
+                                    startRadius: 8,
+                                    endRadius: 54
+                                )
+                            )
+                            .frame(width: 72, height: 72)
+                            .overlay(Circle().stroke(semiTheme.accent.opacity(0.36), lineWidth: 1.5))
+                            .shadow(color: semiTheme.accent.opacity(0.28), radius: 28)
+
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 30, weight: .semibold))
+                            .foregroundStyle(semiTheme.accent)
+                    }
+
+                    VStack(spacing: 5) {
+                        Text("semi")
+                            .font(AppFont.telka(32, weight: .light))
+                            .foregroundStyle(Color.white.opacity(0.95))
+
+                        Text("Your voice, cloned.")
+                            .font(AppFont.telka(14))
+                            .foregroundStyle(Color.white.opacity(0.42))
+                    }
                 }
-            case .inactive, .background:
-                BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
-            @unknown default:
-                BackgroundAudioStore.shared.stop(.onboardingBackgroundAudio)
+                .padding(.top, 72)
+
+                Spacer()
+
+                VStack(spacing: 10) {
+                    ForEach(
+                        [
+                            "Talk naturally. Semi listens.",
+                            "Semi learns your cadence, tone, and vocabulary.",
+                            "The more you talk, the more Semi becomes you."
+                        ],
+                        id: \.self
+                    ) { line in
+                        Text(line)
+                            .font(AppFont.telka(14))
+                            .foregroundStyle(Color.white.opacity(0.42))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                    }
+                }
+                .padding(.horizontal, 30)
+
+                Spacer()
+
+                VStack(spacing: 14) {
+                    PhoneField(text: $viewModel.phoneNumber)
+                        .colorScheme(.light)
+
+                    Button {
+                        viewModel.continueTapped()
+                    } label: {
+                        Label(String(localized: AppStrings.welcomeContinue), systemImage: "mic.fill")
+                    }
+                    .buttonStyle(
+                        SemiPrimaryButtonStyle(
+                            theme: semiTheme,
+                            isActive: false,
+                            isEnabled: viewModel.canContinue && !viewModel.isAuthenticating
+                        )
+                    )
+                    .disabled(!viewModel.canContinue || viewModel.isAuthenticating)
+
+                    HStack(spacing: 12) {
+                        Button {
+                            viewModel.googleTapped()
+                        } label: {
+                            Label("Google", systemImage: "g.circle.fill")
+                        }
+                        .buttonStyle(SemiGlassButtonStyle(theme: semiTheme))
+                        .disabled(viewModel.isAuthenticating)
+
+                        Button {
+                        } label: {
+                            Label("Email", systemImage: "envelope.fill")
+                        }
+                        .buttonStyle(SemiGlassButtonStyle(theme: semiTheme))
+                        .disabled(viewModel.isAuthenticating)
+                    }
+
+                    if viewModel.isAuthenticating {
+                        ProgressView()
+                            .tint(semiTheme.accent)
+                            .padding(.top, 4)
+                    } else if let authErrorMessage = viewModel.authErrorMessage {
+                        Text(authErrorMessage)
+                            .font(AppFont.telka(12))
+                            .foregroundStyle(Color.red.opacity(0.78))
+                            .multilineTextAlignment(.center)
+                            .padding(.top, 4)
+                    }
+
+                    Text("Sign in to agree to terms")
+                        .font(AppFont.telka(12))
+                        .foregroundStyle(Color.white.opacity(0.25))
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 34)
             }
-        }
-        .onTapGesture {
-            dismissKeyboard()
+            .frame(maxWidth: 430)
         }
     }
 
