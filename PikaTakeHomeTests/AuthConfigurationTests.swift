@@ -42,7 +42,7 @@ final class AuthConfigurationTests: XCTestCase {
         let testsDirectory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let projectRoot = testsDirectory.deletingLastPathComponent()
         let infoPlistURL = projectRoot
-            .appendingPathComponent("PikaTakeHome")
+            .appendingPathComponent("Pika")
             .appendingPathComponent("Info.plist")
         return NSDictionary(contentsOf: infoPlistURL)
     }

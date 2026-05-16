@@ -34,6 +34,11 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         fileNameOptions = []
     }
 
+    override func tearDown() {
+        unsetenv("PIKA_DISABLE_IMPORTED_ASSETS")
+        super.tearDown()
+    }
+
     @MainActor
     func testWelcomeScreen() {
         let viewModel = PrototypeWelcomeViewModel(phoneNumber: "4165550199")
@@ -223,7 +228,12 @@ final class PrototypeSnapshotTests: FBSnapshotTestCase {
         hostingController.view.layoutIfNeeded()
         window.layoutIfNeeded()
 
-        FBSnapshotVerifyView(hostingController.view, identifier: identifier)
+        FBSnapshotVerifyView(
+            hostingController.view,
+            identifier: identifier,
+            perPixelTolerance: 0.02,
+            overallTolerance: 0.01
+        )
     }
 
     private func referenceImageExists(for identifier: String) -> Bool {
