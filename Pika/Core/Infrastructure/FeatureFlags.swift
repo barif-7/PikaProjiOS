@@ -12,6 +12,7 @@ enum FeatureFlag: String, CaseIterable {
     case voiceUIFlow = "Voice UI Flow"
     case enableVoiceTraining = "Enable Voice Training"
     case enableVoiceChat = "Enable Voice Chat"
+    case base44DesignUpgrade = "Base44 Design Upgrade"
 
     var environmentKey: String {
         switch self {
@@ -21,6 +22,8 @@ enum FeatureFlag: String, CaseIterable {
             return "PIKA_FEATURE_ENABLE_VOICE_TRAINING"
         case .enableVoiceChat:
             return "PIKA_FEATURE_ENABLE_VOICE_CHAT"
+        case .base44DesignUpgrade:
+            return "PIKA_FEATURE_BASE44_DESIGN_UPGRADE"
         }
     }
 
@@ -75,6 +78,8 @@ struct FeatureFlagManager: FeatureFlagManaging {
             return true
         case .enableVoiceTraining, .enableVoiceChat:
             return false
+        case .base44DesignUpgrade:
+            return true
         }
     }
 

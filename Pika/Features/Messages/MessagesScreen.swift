@@ -11,8 +11,36 @@ import SwiftUI
 struct MessagesScreen: View {
     @ObservedObject var viewModel: PrototypeMessagesViewModel
     @Environment(\.designSystem) private var designSystem
+    private let featureFlags = FeatureFlagManager.shared
+    private let semiTheme = SemiDesign.theme
+
+    private var usesSemiDesign: Bool {
+        featureFlags.isEnabled(.base44DesignUpgrade)
+    }
 
     var body: some View {
+        Group {
+            if usesSemiDesign {
+                semiBody
+            } else {
+                legacyBody
+            }
+        }
+        .alert(item: $viewModel.alert) { message in
+            Alert(
+                title: Text(message.title),
+                message: Text(message.message),
+                dismissButton: .default(Text("OK")) {
+                    viewModel.alert = nil
+                }
+            )
+        }
+        .task {
+            await viewModel.prepareConversation()
+        }
+    }
+
+    private var legacyBody: some View {
         ZStack {
             designSystem.colors.screenBackgroundElevated.ignoresSafeArea()
 
@@ -111,17 +139,273 @@ struct MessagesScreen: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
-        .alert(item: $viewModel.alert) { message in
-            Alert(
-                title: Text(message.title),
-                message: Text(message.message),
-                dismissButton: .default(Text("OK")) {
-                    viewModel.alert = nil
+    }
+
+    private var semiBody: some View {
+        let progress = SemiDesign.progress(
+            for: viewModel.messages.count,
+            stateProgress: viewModel.callState == .responding ? 4 : viewModel.callState == .listening ? 2 : 0
+        )
+
+        return ZStack {
+            SemiBackground(theme: semiTheme)
+
+            VStack(spacing: 0) {
+                semiTopBar
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                Spacer(minLength: 8)
+
+                SemiAuraAvatar(
+                    theme: semiTheme,
+                    progress: progress,
+                    state: viewModel.callState
+                ) {
+                    semiAvatarImage
+                } action: {
+                    viewModel.primaryActionTapped()
                 }
-            )
+                .frame(maxHeight: 320)
+
+                Text(semiStateLabel)
+                    .font(AppFont.telka(14))
+                    .foregroundStyle(semiStateColor.opacity(0.85))
+                    .frame(height: 24)
+                    .padding(.bottom, 12)
+
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 10) {
+                        ForEach(viewModel.messages.suffix(4)) { message in
+                            semiBubble(message)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 4)
+                }
+                .frame(minHeight: 120, maxHeight: 190)
+
+                SemiProgressStrip(theme: semiTheme, progress: progress)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 10)
+
+                VStack(spacing: 14) {
+                    Button {
+                        viewModel.primaryActionTapped()
+                    } label: {
+                        HStack(spacing: 8) {
+                            if viewModel.callState != .idle {
+                                Circle()
+                                    .fill(semiStateColor)
+                                    .frame(width: 7, height: 7)
+                            }
+                            Text(semiPrimaryLabel)
+                        }
+                    }
+                    .buttonStyle(
+                        SemiPrimaryButtonStyle(
+                            theme: semiTheme,
+                            isActive: viewModel.callState != .idle,
+                            isEnabled: viewModel.isPrimaryButtonEnabled
+                        )
+                    )
+                    .disabled(!viewModel.isPrimaryButtonEnabled)
+
+                    HStack(spacing: 12) {
+                        Button {
+                            viewModel.endCallTapped()
+                        } label: {
+                            Label("Step Away", systemImage: "phone.down.fill")
+                        }
+                        .buttonStyle(SemiGlassButtonStyle(theme: semiTheme))
+
+                        Button {
+                            viewModel.openProviderSettingsTapped()
+                        } label: {
+                            Label("Clone Stats", systemImage: "chart.bar.fill")
+                        }
+                        .buttonStyle(SemiGlassButtonStyle(theme: semiTheme))
+                    }
+
+                    if viewModel.showsRetrainVoiceButton {
+                        Button {
+                            viewModel.retrainVoiceTapped()
+                        } label: {
+                            Label(String(localized: AppStrings.messagesRetrainVoice), systemImage: "arrow.triangle.2.circlepath")
+                        }
+                        .buttonStyle(SemiGlassButtonStyle(theme: semiTheme))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 18)
+                .padding(.bottom, 26)
+            }
+            .frame(maxWidth: 430)
         }
-        .task {
-            await viewModel.prepareConversation()
+    }
+
+    private var semiTopBar: some View {
+        HStack {
+            Button {
+                viewModel.backTapped()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.72))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.06), in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.10), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+
+            SemiStatusPill(
+                label: semiStatusLabel,
+                dotColor: semiStateColor,
+                isPulsing: viewModel.callState != .idle
+            )
+
+            Text("3")
+                .font(AppFont.mono(10, weight: .bold))
+                .foregroundStyle(Color(red: 251/255, green: 146/255, blue: 60/255))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color(red: 251/255, green: 146/255, blue: 60/255).opacity(0.12), in: Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(Color(red: 251/255, green: 146/255, blue: 60/255).opacity(0.25), lineWidth: 1)
+                )
+
+            Spacer()
+
+            Button {
+                viewModel.openProviderSettingsTapped()
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.72))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.06), in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.10), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var semiAvatarImage: some View {
+        Group {
+            if let avatarImage = viewModel.avatarImage {
+                Image(uiImage: avatarImage)
+                    .resizable()
+                    .scaledToFill()
+            } else if ImportedAsset.semiPortrait.existsInBundle {
+                ImportedBitmapImage(asset: .semiPortrait, contentMode: .fill)
+            } else {
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [semiTheme.aura[0].opacity(0.32), semiTheme.backgroundBottom],
+                                center: UnitPoint(x: 0.35, y: 0.35),
+                                startRadius: 0,
+                                endRadius: 90
+                            )
+                        )
+                    VStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 44, weight: .medium))
+                        Text("semi")
+                            .font(AppFont.mono(9, weight: .bold))
+                    }
+                    .foregroundStyle(semiTheme.accent.opacity(0.75))
+                }
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            Button {
+                viewModel.updateAvatarTapped()
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 26, height: 26)
+                    .background(semiTheme.accent, in: Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.36), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .offset(x: -10, y: -10)
+        }
+    }
+
+    private func semiBubble(_ message: PrototypeVoiceChatMessage) -> some View {
+        let isUser = message.speaker == .user
+        let foreground = isUser ? Color.white.opacity(0.90) : Color.white.opacity(0.75)
+        let background = isUser ? semiTheme.accent.opacity(0.15) : Color.white.opacity(0.06)
+        let border = isUser ? semiTheme.accent.opacity(0.30) : Color.white.opacity(0.10)
+
+        return HStack {
+            if isUser {
+                Spacer(minLength: 42)
+            }
+
+            Text(message.text)
+                .font(AppFont.telka(14))
+                .lineSpacing(3)
+                .foregroundStyle(foreground)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 11)
+                .background(background, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(border, lineWidth: 1)
+                )
+
+            if !isUser {
+                Spacer(minLength: 42)
+            }
+        }
+    }
+
+    private var semiStatusLabel: String {
+        switch viewModel.callState {
+        case .idle:
+            return "ready"
+        case .listening:
+            return "listening..."
+        case .responding:
+            return "speaking now"
+        }
+    }
+
+    private var semiStateLabel: String {
+        switch viewModel.callState {
+        case .idle:
+            return "tap to begin"
+        case .listening:
+            return "I'm listening..."
+        case .responding:
+            return "speaking now"
+        }
+    }
+
+    private var semiPrimaryLabel: String {
+        switch viewModel.callState {
+        case .idle, .responding:
+            return "Start Talking"
+        case .listening:
+            return "Listening..."
+        }
+    }
+
+    private var semiStateColor: Color {
+        switch viewModel.callState {
+        case .idle:
+            return Color.white.opacity(0.30)
+        case .listening:
+            return Color(red: 245/255, green: 158/255, blue: 11/255)
+        case .responding:
+            return Color(red: 251/255, green: 146/255, blue: 60/255)
         }
     }
 
