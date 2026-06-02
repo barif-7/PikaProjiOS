@@ -25,7 +25,7 @@ struct PrototypeVoiceChatMessage: Identifiable, Equatable {
 
     let id = UUID()
     let speaker: Speaker
-    let text: String
+    var text: String
 }
 
 /// Errors raised while recording a turn or sending it to the chat backend.
@@ -142,6 +142,10 @@ struct VoiceChatBackendConfiguration {
         baseURL.appendingPathComponent("voice-chat").appendingPathComponent("jobs")
     }
 
+    var streamURL: URL {
+        baseURL.appendingPathComponent("voice-chat").appendingPathComponent("stream")
+    }
+
     func voiceJobStatusURL(jobID: String) -> URL {
         voiceJobsURL.appendingPathComponent(jobID)
     }
@@ -177,6 +181,31 @@ protocol MessagesVoiceChatResponding {
     ) async throws -> MessagesTurnResult
 }
 
+/// One incremental event from the streaming voice-chat endpoint
+/// (`POST /voice-chat/stream`), surfaced in arrival order.
+enum MessagesTurnStreamEvent {
+    /// The user's transcribed speech (arrives once, before any reply text).
+    case transcript(String)
+    /// A chunk of reply text as the language model generates it.
+    case textDelta(String)
+    /// Synthesized audio for one completed sentence of the reply.
+    case audio(Data)
+    /// Terminal event carrying the full reply text.
+    case done(responseText: String)
+}
+
+/// Streaming counterpart to ``MessagesVoiceChatResponding``.  Conforming
+/// services deliver a turn incrementally so the UI can show reply text and
+/// play sentence audio before the full response is generated.
+protocol MessagesVoiceChatStreaming {
+    func respondStreaming(
+        to recordedTurn: MessagesRecordedTurn,
+        history: [PrototypeVoiceChatMessage],
+        conversationSummary: String?,
+        voiceProfileID: String?
+    ) -> AsyncThrowingStream<MessagesTurnStreamEvent, Error>
+}
+
 protocol MessagesConversationPersisting {
     func loadConversation() async throws -> MessagesConversationSnapshot
     func saveConversation(
@@ -190,5 +219,16 @@ protocol MessagesConversationPersisting {
 @MainActor
 protocol MessagesAudioPlaying: AnyObject {
     func play(_ audioData: Data) throws
+    /// Append audio to a playback queue, playing chunks back to back.  Used by
+    /// the streaming path to play each sentence as it is synthesized.
+    func enqueue(_ audioData: Data) throws
     func stop()
+}
+
+extension MessagesAudioPlaying {
+    /// Default fallback for players without a real queue (e.g. test mocks):
+    /// behaves like a single immediate playback.
+    func enqueue(_ audioData: Data) throws {
+        try play(audioData)
+    }
 }

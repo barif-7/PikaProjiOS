@@ -65,6 +65,18 @@ private struct MessagesBackendErrorResponse: Decodable {
     let message: String
 }
 
+/// One decoded Server-Sent Event frame from `POST /voice-chat/stream`.
+private struct MessagesBackendStreamEvent: Decodable {
+    let type: String
+    let transcript: String?
+    let delta: String?
+    let audioBase64: String?
+    let mimeType: String?
+    let text: String?
+    let responseText: String?
+    let error: String?
+}
+
 /// HTTP client that sends recorded turns to the voice-chat backend.
 actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
     private static let maxHistoryMessages = 8
@@ -98,35 +110,13 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         conversationSummary: String?,
         voiceProfileID: String?
     ) async throws -> MessagesTurnResult {
-        let audioChunks = try AudioChunker.chunkedUploads(for: recordedTurn.fileURL, duration: recordedTurn.duration)
-        let shouldChunk = !audioChunks.isEmpty
-        let audioBase64 = shouldChunk ? nil : try Data(contentsOf: recordedTurn.fileURL).base64EncodedString()
-        let trimmedHistory = history.suffix(Self.maxHistoryMessages)
-        let requestBody = MessagesBackendTurnRequest(
-            audioBase64: audioBase64,
-            audioChunks: shouldChunk ? audioChunks : nil,
-            mimeType: recordedTurn.mimeType,
-            fileName: recordedTurn.fileURL.lastPathComponent,
-            durationSeconds: recordedTurn.duration,
-            voiceProfileID: voiceProfileID,
-            conversationSummary: conversationSummary?.nilIfBlank,
-            history: trimmedHistory.map {
-                MessagesBackendHistoryMessage(
-                    role: $0.speaker == .user ? "user" : "assistant",
-                    content: $0.text
-                )
-            }
+        let requestBody = try makeRequestBody(
+            recordedTurn: recordedTurn,
+            history: history,
+            conversationSummary: conversationSummary,
+            voiceProfileID: voiceProfileID
         )
-
-        var request = URLRequest(url: configuration.voiceJobsURL)
-        request.httpMethod = "POST"
-        request.timeoutInterval = Self.requestTimeout
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let sessionToken {
-            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
-        }
-        configuration.decorate(&request)
-        request.httpBody = try encoder.encode(requestBody)
+        let request = try makeRequest(url: configuration.voiceJobsURL, body: requestBody)
 
         let data: Data
         let response: URLResponse
@@ -141,6 +131,48 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
 
         let accepted = try decoder.decode(MessagesBackendVoiceJobSubmitResponse.self, from: data)
         return try await pollForCompletedJob(jobID: accepted.jobID)
+    }
+
+    // MARK: - Shared request building
+
+    private func makeRequestBody(
+        recordedTurn: MessagesRecordedTurn,
+        history: [PrototypeVoiceChatMessage],
+        conversationSummary: String?,
+        voiceProfileID: String?
+    ) throws -> MessagesBackendTurnRequest {
+        let audioChunks = try AudioChunker.chunkedUploads(for: recordedTurn.fileURL, duration: recordedTurn.duration)
+        let shouldChunk = !audioChunks.isEmpty
+        let audioBase64 = shouldChunk ? nil : try Data(contentsOf: recordedTurn.fileURL).base64EncodedString()
+        let trimmedHistory = history.suffix(Self.maxHistoryMessages)
+        return MessagesBackendTurnRequest(
+            audioBase64: audioBase64,
+            audioChunks: shouldChunk ? audioChunks : nil,
+            mimeType: recordedTurn.mimeType,
+            fileName: recordedTurn.fileURL.lastPathComponent,
+            durationSeconds: recordedTurn.duration,
+            voiceProfileID: voiceProfileID,
+            conversationSummary: conversationSummary?.nilIfBlank,
+            history: trimmedHistory.map {
+                MessagesBackendHistoryMessage(
+                    role: $0.speaker == .user ? "user" : "assistant",
+                    content: $0.text
+                )
+            }
+        )
+    }
+
+    private func makeRequest(url: URL, body: MessagesBackendTurnRequest) throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = Self.requestTimeout
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let sessionToken {
+            request.setValue("Bearer \(sessionToken)", forHTTPHeaderField: "Authorization")
+        }
+        configuration.decorate(&request)
+        request.httpBody = try encoder.encode(body)
+        return request
     }
 
     private static func networkFailureMessage(for error: URLError, baseURL: URL) -> String {
@@ -224,6 +256,106 @@ actor HTTPMessagesVoiceChatService: MessagesVoiceChatResponding {
         throw MessagesVoiceChatError.backendFailed(
             message: "The voice backend did not finish the queued job within \(Int(Self.requestTimeout)) seconds."
         )
+    }
+
+    /// Open the SSE stream and forward each decoded event to ``continuation``.
+    fileprivate func streamTurn(
+        recordedTurn: MessagesRecordedTurn,
+        history: [PrototypeVoiceChatMessage],
+        conversationSummary: String?,
+        voiceProfileID: String?,
+        continuation: AsyncThrowingStream<MessagesTurnStreamEvent, Error>.Continuation
+    ) async throws {
+        let body = try makeRequestBody(
+            recordedTurn: recordedTurn,
+            history: history,
+            conversationSummary: conversationSummary,
+            voiceProfileID: voiceProfileID
+        )
+        var request = try makeRequest(url: configuration.streamURL, body: body)
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+
+        let bytes: URLSession.AsyncBytes
+        let response: URLResponse
+        do {
+            (bytes, response) = try await session.bytes(for: request)
+        } catch let error as URLError {
+            throw MessagesVoiceChatError.backendNetworkFailed(
+                message: Self.networkFailureMessage(for: error, baseURL: configuration.baseURL)
+            )
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw MessagesVoiceChatError.invalidResponse
+        }
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
+            throw MessagesVoiceChatError.backendFailed(
+                message: String(localized: AppStrings.messagesBackendFailedBody)
+            )
+        }
+
+        for try await line in bytes.lines {
+            try Task.checkCancellation()
+            guard line.hasPrefix("data:") else { continue }
+            let payload = line.dropFirst("data:".count).trimmingCharacters(in: .whitespaces)
+            guard !payload.isEmpty, let data = payload.data(using: .utf8) else { continue }
+            guard let event = try? decoder.decode(MessagesBackendStreamEvent.self, from: data) else { continue }
+
+            switch event.type {
+            case "transcript":
+                let transcript = event.transcript?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if !transcript.isEmpty {
+                    continuation.yield(.transcript(transcript))
+                }
+            case "text":
+                if let delta = event.delta, !delta.isEmpty {
+                    continuation.yield(.textDelta(delta))
+                }
+            case "audio":
+                if let base64 = event.audioBase64, let audio = Data(base64Encoded: base64) {
+                    continuation.yield(.audio(audio))
+                }
+            case "done":
+                let responseText = event.responseText?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                continuation.yield(.done(responseText: responseText))
+                return
+            case "error":
+                throw MessagesVoiceChatError.backendFailed(
+                    message: event.error ?? String(localized: AppStrings.messagesBackendFailedBody)
+                )
+            default:
+                break
+            }
+        }
+    }
+}
+
+extension HTTPMessagesVoiceChatService: MessagesVoiceChatStreaming {
+    nonisolated func respondStreaming(
+        to recordedTurn: MessagesRecordedTurn,
+        history: [PrototypeVoiceChatMessage],
+        conversationSummary: String?,
+        voiceProfileID: String?
+    ) -> AsyncThrowingStream<MessagesTurnStreamEvent, Error> {
+        AsyncThrowingStream { continuation in
+            let task = Task {
+                do {
+                    try await self.streamTurn(
+                        recordedTurn: recordedTurn,
+                        history: history,
+                        conversationSummary: conversationSummary,
+                        voiceProfileID: voiceProfileID,
+                        continuation: continuation
+                    )
+                    continuation.finish()
+                } catch is CancellationError {
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { _ in task.cancel() }
+        }
     }
 }
 

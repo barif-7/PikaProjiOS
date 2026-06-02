@@ -227,21 +227,11 @@ final class PrototypeMessagesViewModel: ObservableObject {
                 return
             }
 
-            let result = try await chatService.respond(
-                to: recordedTurn,
-                history: messages,
-                conversationSummary: conversationSummary,
-                voiceProfileID: voiceProfileID
-            )
-            messages.append(PrototypeVoiceChatMessage(speaker: .user, text: result.transcript))
-            messages.append(PrototypeVoiceChatMessage(speaker: .semi, text: result.responseText))
-            rebuildConversationSummary()
-            await persistConversationIfPossible()
-
-            if let responseAudioData = result.responseAudioData {
-                try audioPlayer.play(responseAudioData)
+            if featureFlags.isEnabled(.enableVoiceStreaming),
+               let streamingService = chatService as? MessagesVoiceChatStreaming {
+                try await handleStreamingTurn(recordedTurn, using: streamingService)
             } else {
-                presentAlert(for: .textOnlyResponse)
+                try await handleBufferedTurn(recordedTurn)
             }
 
             callState = .idle
@@ -255,6 +245,80 @@ final class PrototypeMessagesViewModel: ObservableObject {
             statusText = String(localized: AppStrings.messagesStatusReady)
             presentAlert(for: .backendFailed(message: String(localized: AppStrings.messagesBackendFailedBody)))
         }
+    }
+
+    /// Non-streaming path: submit the turn and await the complete result.
+    private func handleBufferedTurn(_ recordedTurn: MessagesRecordedTurn) async throws {
+        let result = try await chatService.respond(
+            to: recordedTurn,
+            history: messages,
+            conversationSummary: conversationSummary,
+            voiceProfileID: voiceProfileID
+        )
+        messages.append(PrototypeVoiceChatMessage(speaker: .user, text: result.transcript))
+        messages.append(PrototypeVoiceChatMessage(speaker: .semi, text: result.responseText))
+        rebuildConversationSummary()
+        await persistConversationIfPossible()
+
+        if let responseAudioData = result.responseAudioData {
+            try audioPlayer.play(responseAudioData)
+        } else {
+            presentAlert(for: .textOnlyResponse)
+        }
+    }
+
+    /// Streaming path: consume the SSE event stream, updating reply text live
+    /// and playing each sentence's audio as it is synthesized.
+    private func handleStreamingTurn(
+        _ recordedTurn: MessagesRecordedTurn,
+        using streamingService: MessagesVoiceChatStreaming
+    ) async throws {
+        let stream = streamingService.respondStreaming(
+            to: recordedTurn,
+            history: messages,
+            conversationSummary: conversationSummary,
+            voiceProfileID: voiceProfileID
+        )
+
+        var assistantIndex: Int?
+        var didReceiveAudio = false
+
+        for try await event in stream {
+            switch event {
+            case .transcript(let transcript):
+                messages.append(PrototypeVoiceChatMessage(speaker: .user, text: transcript))
+                messages.append(PrototypeVoiceChatMessage(speaker: .semi, text: ""))
+                assistantIndex = messages.count - 1
+            case .textDelta(let delta):
+                let index = assistantIndex ?? appendAssistantPlaceholder()
+                assistantIndex = index
+                messages[index].text += delta
+            case .audio(let data):
+                didReceiveAudio = true
+                try audioPlayer.enqueue(data)
+            case .done(let responseText):
+                if let index = assistantIndex, !responseText.isEmpty {
+                    messages[index].text = responseText
+                }
+            }
+        }
+
+        guard let index = assistantIndex else {
+            throw MessagesVoiceChatError.invalidResponse
+        }
+        messages[index].text = messages[index].text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        rebuildConversationSummary()
+        await persistConversationIfPossible()
+
+        if !didReceiveAudio {
+            presentAlert(for: .textOnlyResponse)
+        }
+    }
+
+    private func appendAssistantPlaceholder() -> Int {
+        messages.append(PrototypeVoiceChatMessage(speaker: .semi, text: ""))
+        return messages.count - 1
     }
 
     private func appendLocalDemoTurn(_ recordedTurn: MessagesRecordedTurn) {

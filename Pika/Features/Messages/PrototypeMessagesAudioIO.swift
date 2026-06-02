@@ -115,12 +115,37 @@ final class LocalDemoMessagesVoiceRecorder: MessagesVoiceRecorder, @unchecked Se
 
 @MainActor
 /// Small `AVAudioPlayer` wrapper for backend response audio.
+///
+/// Supports both single-shot playback (``play(_:)``) for the non-streaming
+/// path and a sequential queue (``enqueue(_:)``) for the streaming path, where
+/// each sentence's audio arrives separately and must play back to back.
 final class MessagesAudioPlayer: NSObject, MessagesAudioPlaying, AVAudioPlayerDelegate {
     private var player: AVAudioPlayer?
+    private var queue: [Data] = []
 
+    /// Replace any queued/playing audio and play this clip immediately.
     func play(_ audioData: Data) throws {
         stop()
-        let player = try AVAudioPlayer(data: audioData)
+        queue = [audioData]
+        try playNextIfIdle()
+    }
+
+    /// Add audio to the end of the playback queue; starts playback if idle.
+    func enqueue(_ audioData: Data) throws {
+        queue.append(audioData)
+        try playNextIfIdle()
+    }
+
+    func stop() {
+        queue.removeAll()
+        player?.stop()
+        player = nil
+    }
+
+    private func playNextIfIdle() throws {
+        guard player == nil, !queue.isEmpty else { return }
+        let data = queue.removeFirst()
+        let player = try AVAudioPlayer(data: data)
         player.prepareToPlay()
         player.delegate = self
         guard player.play() else {
@@ -129,8 +154,10 @@ final class MessagesAudioPlayer: NSObject, MessagesAudioPlaying, AVAudioPlayerDe
         self.player = player
     }
 
-    func stop() {
-        player?.stop()
-        player = nil
+    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        Task { @MainActor in
+            self.player = nil
+            try? self.playNextIfIdle()
+        }
     }
 }
